@@ -2,7 +2,7 @@
 # StackForge PaaS – Nền tảng triển khai ứng dụng doanh nghiệp
 
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Mahiru-Chan-Phuc/PaaS/blob/main/LICENSE)
-[![Version](https://img.shields.io/badge/version-2.6.0-brightgreen)](https://github.com/Mahiru-Chan-Phuc/PaaS)
+[![Version](https://img.shields.io/badge/version-3.0.0-brightgreen)](https://github.com/Mahiru-Chan-Phuc/PaaS)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Mahiru-Chan-Phuc/PaaS/pulls)
 
 **StackForge PaaS** là giao diện quản lý nền tảng Platform-as-a-Service được thiết kế dành riêng cho đội ngũ phát triển và vận hành. Dự án cung cấp một dashboard hiện đại, trực quan để quản lý ứng dụng, theo dõi tài nguyên, triển khai tự động và giám sát hệ thống theo thời gian thực.
