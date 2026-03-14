@@ -1,0 +1,1858 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StackForge PaaS — Platform Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&family=Familjen+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:       #080c10;
+  --surface:  #0d1117;
+  --raised:   #111820;
+  --border:   #1e2d3d;
+  --border2:  #253545;
+  --accent:   #00e5ff;
+  --accent2:  #00ff9d;
+  --warn:     #ffab00;
+  --danger:   #ff3d5a;
+  --violet:   #a78bfa;
+  --text:     #cdd6f4;
+  --dim:      #6b7e99;
+  --faint:    #2d3f52;
+  --mono:     'JetBrains Mono', monospace;
+  --sans:     'Familjen Grotesk', sans-serif;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--accent);border-radius:2px;opacity:.4}
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── NOISE TEXTURE ── */
+body::before {
+  content:'';
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity:.4;
+}
+
+/* ── GRID LINES ── */
+body::after {
+  content:'';
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(0,229,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,.025) 1px, transparent 1px);
+  background-size:48px 48px;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  position:fixed;top:0;left:0;bottom:0;width:220px;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  z-index:100;
+  display:flex;flex-direction:column;
+}
+
+.sidebar-logo {
+  padding:20px 18px 16px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+
+.logo-mark {
+  width:32px;height:32px;border-radius:7px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:14px;font-weight:800;
+  color:var(--bg);flex-shrink:0;
+  box-shadow:0 0 20px rgba(0,229,255,.3);
+}
+
+.logo-text {
+  font-family:var(--mono);font-weight:700;font-size:.92rem;
+  letter-spacing:-.02em;color:#fff;
+}
+.logo-text span{color:var(--accent);}
+
+.sidebar-version {
+  font-size:.6rem;color:var(--dim);font-family:var(--mono);
+  margin-left:auto;padding:2px 6px;border:1px solid var(--border);
+  border-radius:3px;
+}
+
+.sidebar-nav {
+  flex:1;padding:12px 10px;overflow-y:auto;
+}
+
+.nav-section {
+  margin-bottom:20px;
+}
+
+.nav-section-label {
+  font-family:var(--mono);font-size:.55rem;font-weight:700;
+  color:var(--faint);letter-spacing:.14em;text-transform:uppercase;
+  padding:0 8px;margin-bottom:4px;
+}
+
+.nav-item {
+  display:flex;align-items:center;gap:10px;
+  padding:8px 10px;border-radius:7px;
+  color:var(--dim);font-size:.82rem;font-weight:500;
+  cursor:pointer;transition:all .18s;position:relative;
+  margin-bottom:2px;
+}
+.nav-item:hover{background:rgba(0,229,255,.06);color:var(--text);}
+.nav-item.active{background:rgba(0,229,255,.1);color:var(--accent);}
+.nav-item.active::before{
+  content:'';position:absolute;left:-10px;top:50%;transform:translateY(-50%);
+  width:3px;height:18px;background:var(--accent);border-radius:0 2px 2px 0;
+}
+
+.nav-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0;}
+
+.nav-badge {
+  margin-left:auto;font-family:var(--mono);font-size:.55rem;font-weight:700;
+  padding:2px 6px;border-radius:3px;background:rgba(255,61,90,.15);
+  color:var(--danger);
+}
+.nav-badge.green{background:rgba(0,255,157,.12);color:var(--accent2);}
+.nav-badge.blue{background:rgba(0,229,255,.1);color:var(--accent);}
+
+.sidebar-footer {
+  padding:12px 10px;border-top:1px solid var(--border);
+}
+
+.user-card {
+  display:flex;align-items:center;gap:10px;
+  padding:8px 10px;border-radius:8px;
+  background:var(--raised);border:1px solid var(--border);
+  cursor:pointer;transition:border-color .2s;
+}
+.user-card:hover{border-color:var(--border2);}
+
+.user-avatar {
+  width:30px;height:30px;border-radius:7px;
+  background:linear-gradient(135deg,var(--violet),var(--accent));
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:var(--bg);font-family:var(--mono);
+  flex-shrink:0;
+}
+
+.user-name{font-size:.78rem;font-weight:600;color:var(--text);}
+.user-role{font-size:.62rem;color:var(--dim);font-family:var(--mono);}
+
+/* ── MAIN ── */
+.main {
+  margin-left:220px;min-height:100vh;
+  position:relative;z-index:1;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  height:56px;
+  background:rgba(13,17,23,.8);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;
+  padding:0 28px;gap:16px;
+}
+
+.topbar-title {
+  font-family:var(--mono);font-size:.78rem;font-weight:500;
+  color:var(--dim);display:flex;align-items:center;gap:6px;
+}
+.topbar-title .sep{color:var(--faint);}
+.topbar-title .current{color:var(--text);font-weight:700;}
+
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+
+.status-indicator {
+  display:flex;align-items:center;gap:6px;
+  font-family:var(--mono);font-size:.65rem;color:var(--dim);
+  padding:5px 12px;background:var(--raised);border:1px solid var(--border);
+  border-radius:6px;
+}
+.status-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--accent2);
+  box-shadow:0 0 8px var(--accent2);
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.btn {
+  display:inline-flex;align-items:center;gap:7px;
+  padding:7px 14px;border-radius:7px;font-size:.78rem;font-weight:600;
+  cursor:pointer;transition:all .2s;border:none;font-family:var(--sans);
+  letter-spacing:.01em;
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:var(--bg);
+  box-shadow:0 0 20px rgba(0,229,255,.2);
+}
+.btn-primary:hover{box-shadow:0 0 30px rgba(0,229,255,.4);transform:translateY(-1px);}
+.btn-ghost{
+  background:var(--raised);border:1px solid var(--border);color:var(--dim);
+}
+.btn-ghost:hover{border-color:var(--border2);color:var(--text);}
+.btn-danger{
+  background:rgba(255,61,90,.1);border:1px solid rgba(255,61,90,.3);color:var(--danger);
+}
+.btn-danger:hover{background:rgba(255,61,90,.2);}
+
+/* ── CONTENT ── */
+.content{padding:28px;}
+
+/* ── OVERVIEW HEADER ── */
+.overview-header {
+  margin-bottom:28px;
+}
+.overview-header h1 {
+  font-family:var(--mono);font-size:1.4rem;font-weight:800;
+  color:#fff;letter-spacing:-.03em;margin-bottom:4px;
+}
+.overview-header p {
+  font-size:.84rem;color:var(--dim);font-family:var(--mono);
+}
+.overview-header p .hl{color:var(--accent);}
+
+/* ── METRIC CARDS ── */
+.metrics-row {
+  display:grid;grid-template-columns:repeat(4,1fr);gap:16px;
+  margin-bottom:28px;
+}
+
+.metric-card {
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:18px 20px;
+  position:relative;overflow:hidden;
+  transition:border-color .2s,transform .2s;cursor:default;
+}
+.metric-card:hover{border-color:var(--border2);transform:translateY(-2px);}
+
+.metric-card::before {
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  opacity:.7;
+}
+.mc-cyan::before{background:linear-gradient(90deg,transparent,var(--accent),transparent);}
+.mc-green::before{background:linear-gradient(90deg,transparent,var(--accent2),transparent);}
+.mc-warn::before{background:linear-gradient(90deg,transparent,var(--warn),transparent);}
+.mc-violet::before{background:linear-gradient(90deg,transparent,var(--violet),transparent);}
+
+.metric-label {
+  font-family:var(--mono);font-size:.58rem;font-weight:700;
+  color:var(--dim);letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;
+}
+.metric-value {
+  font-family:var(--mono);font-size:2rem;font-weight:800;
+  color:#fff;letter-spacing:-.04em;line-height:1;margin-bottom:6px;
+}
+.metric-value .unit{font-size:1rem;color:var(--dim);font-weight:400;}
+.metric-sub {
+  font-family:var(--mono);font-size:.62rem;color:var(--dim);
+  display:flex;align-items:center;gap:5px;
+}
+.metric-sub .up{color:var(--accent2);}
+.metric-sub .dn{color:var(--danger);}
+
+.metric-sparkline {
+  position:absolute;bottom:0;right:0;
+  width:80px;height:40px;opacity:.3;
+}
+
+/* ── TWO COL ── */
+.two-col{display:grid;grid-template-columns:1fr 340px;gap:20px;margin-bottom:24px;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px;}
+
+/* ── PANEL ── */
+.panel {
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;
+}
+.panel-header {
+  padding:14px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.panel-title {
+  font-family:var(--mono);font-size:.75rem;font-weight:700;
+  color:var(--text);letter-spacing:-.01em;
+}
+.panel-title::before{content:'// ';color:var(--faint);font-weight:400;}
+.panel-actions{margin-left:auto;display:flex;gap:8px;align-items:center;}
+.panel-body{padding:18px;}
+
+/* ── APPS TABLE ── */
+.apps-table{width:100%;border-collapse:collapse;}
+.apps-table th {
+  font-family:var(--mono);font-size:.58rem;font-weight:700;
+  color:var(--dim);letter-spacing:.1em;text-transform:uppercase;
+  padding:8px 12px;border-bottom:1px solid var(--border);text-align:left;
+}
+.apps-table td {
+  padding:11px 12px;border-bottom:1px solid rgba(30,45,61,.5);
+  font-size:.82rem;vertical-align:middle;
+}
+.apps-table tr:last-child td{border-bottom:none;}
+.apps-table tr:hover td{background:rgba(0,229,255,.025);}
+
+.app-name-cell{display:flex;align-items:center;gap:10px;}
+.app-icon {
+  width:28px;height:28px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;flex-shrink:0;
+}
+
+.status-pill {
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 9px;border-radius:4px;
+  font-family:var(--mono);font-size:.6rem;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;
+}
+.sp-running{background:rgba(0,255,157,.1);color:var(--accent2);border:1px solid rgba(0,255,157,.2);}
+.sp-building{background:rgba(0,229,255,.1);color:var(--accent);border:1px solid rgba(0,229,255,.2);}
+.sp-stopped{background:rgba(107,126,153,.1);color:var(--dim);border:1px solid rgba(107,126,153,.2);}
+.sp-error{background:rgba(255,61,90,.1);color:var(--danger);border:1px solid rgba(255,61,90,.2);}
+
+.sp-dot{width:5px;height:5px;border-radius:50%;background:currentColor;animation:pulse 2s infinite;}
+.sp-building .sp-dot{animation:spin-pulse 1s linear infinite;}
+@keyframes spin-pulse{0%{opacity:1}50%{opacity:.2}100%{opacity:1}}
+
+.app-url{font-family:var(--mono);font-size:.68rem;color:var(--accent);text-decoration:none;}
+.app-url:hover{text-decoration:underline;}
+
+.resource-bar-wrap{width:80px;}
+.resource-bar-bg{height:4px;background:var(--faint);border-radius:2px;overflow:hidden;}
+.resource-bar-fill{height:4px;border-radius:2px;transition:width 1s ease;}
+
+/* ── DEPLOY PIPELINE ── */
+.pipeline {
+  display:flex;align-items:center;gap:0;
+  padding:4px 0;
+}
+.pipeline-step {
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  flex:1;position:relative;
+}
+.pipeline-step::after {
+  content:'';position:absolute;top:14px;left:50%;width:100%;
+  height:1px;background:var(--border);z-index:0;
+}
+.pipeline-step:last-child::after{display:none;}
+.ps-dot {
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;z-index:1;border:2px solid transparent;
+  position:relative;
+}
+.ps-done{background:rgba(0,255,157,.1);border-color:var(--accent2);color:var(--accent2);}
+.ps-active{background:rgba(0,229,255,.15);border-color:var(--accent);color:var(--accent);animation:glow-pulse 1.5s infinite;}
+@keyframes glow-pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,229,255,.4)}50%{box-shadow:0 0 0 8px rgba(0,229,255,0)}}
+.ps-pending{background:var(--raised);border-color:var(--border);color:var(--faint);}
+.ps-error{background:rgba(255,61,90,.1);border-color:var(--danger);color:var(--danger);}
+.ps-label{font-family:var(--mono);font-size:.58rem;color:var(--dim);text-align:center;letter-spacing:.04em;}
+.ps-time{font-family:var(--mono);font-size:.52rem;color:var(--faint);}
+
+/* ── LOG TERMINAL ── */
+.log-terminal {
+  background:var(--bg);border-radius:8px;
+  font-family:var(--mono);font-size:.72rem;
+  height:220px;overflow-y:auto;padding:14px;
+  border:1px solid var(--faint);
+  position:relative;
+}
+.log-terminal::before {
+  content:'';position:sticky;top:0;left:0;right:0;height:24px;
+  display:block;
+  background:linear-gradient(var(--bg),transparent);
+  pointer-events:none;
+  margin-bottom:-24px;
+}
+
+.log-line {
+  display:flex;gap:12px;margin-bottom:3px;line-height:1.6;
+  animation:log-appear .15s ease;
+}
+@keyframes log-appear{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+
+.log-time{color:var(--faint);flex-shrink:0;width:56px;}
+.log-level {
+  flex-shrink:0;width:38px;font-weight:700;font-size:.62rem;
+  text-transform:uppercase;letter-spacing:.06em;
+}
+.ll-info{color:var(--accent);}
+.ll-warn{color:var(--warn);}
+.ll-error{color:var(--danger);}
+.ll-ok{color:var(--accent2);}
+.ll-debug{color:var(--dim);}
+.log-msg{color:var(--text);}
+.log-msg .cmd{color:var(--violet);}
+.log-msg .val{color:var(--accent2);}
+.log-msg .err{color:var(--danger);}
+.log-msg .url{color:var(--accent);}
+
+/* ── ENV VARS ── */
+.env-list{display:flex;flex-direction:column;gap:8px;}
+.env-item {
+  display:flex;align-items:center;gap:10px;
+  background:var(--raised);border:1px solid var(--border);
+  border-radius:7px;padding:8px 12px;
+  font-family:var(--mono);font-size:.72rem;
+  transition:border-color .2s;
+}
+.env-item:hover{border-color:var(--border2);}
+.env-key{color:var(--accent);font-weight:600;flex-shrink:0;min-width:120px;}
+.env-val{color:var(--dim);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.env-val.secret{color:var(--faint);letter-spacing:.2em;}
+.env-type{
+  flex-shrink:0;font-size:.55rem;padding:2px 6px;
+  border-radius:3px;letter-spacing:.06em;font-weight:700;text-transform:uppercase;
+}
+.et-secret{background:rgba(167,139,250,.1);color:var(--violet);}
+.et-public{background:rgba(0,229,255,.08);color:var(--accent);}
+.env-toggle{
+  flex-shrink:0;color:var(--faint);cursor:pointer;font-size:11px;
+  padding:2px 6px;border-radius:4px;background:var(--surface);
+  border:1px solid var(--border);transition:all .15s;
+}
+.env-toggle:hover{color:var(--text);border-color:var(--border2);}
+
+/* ── RESOURCE CHART (CSS bars) ── */
+.chart-area {
+  height:160px;
+  display:flex;align-items:flex-end;gap:6px;
+  padding:0 4px;
+  position:relative;
+}
+.chart-area::before {
+  content:'';position:absolute;inset:0;
+  background-image:repeating-linear-gradient(
+    0deg,transparent,transparent calc(25% - 1px),
+    rgba(30,45,61,.5) calc(25% - 1px),rgba(30,45,61,.5) 25%
+  );
+  pointer-events:none;
+}
+.chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.chart-bar{
+  width:100%;border-radius:3px 3px 0 0;
+  transition:height 1s cubic-bezier(.4,0,.2,1);
+  position:relative;cursor:pointer;
+}
+.chart-bar:hover{filter:brightness(1.3);}
+.chart-label{font-family:var(--mono);font-size:.55rem;color:var(--faint);}
+
+/* ── DOMAINS ── */
+.domain-list{display:flex;flex-direction:column;gap:8px;}
+.domain-item {
+  display:flex;align-items:center;gap:12px;
+  background:var(--raised);border:1px solid var(--border);
+  border-radius:8px;padding:10px 14px;
+  transition:border-color .2s;
+}
+.domain-item:hover{border-color:var(--border2);}
+.domain-lock{color:var(--accent2);font-size:12px;flex-shrink:0;}
+.domain-name{font-family:var(--mono);font-size:.78rem;color:var(--text);flex:1;}
+.domain-primary{
+  font-size:.55rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  padding:2px 6px;border-radius:3px;
+  background:rgba(0,255,157,.1);color:var(--accent2);
+  border:1px solid rgba(0,255,157,.2);
+}
+.domain-ssl{font-size:.62rem;color:var(--dim);font-family:var(--mono);}
+
+/* ── ACTIVITY ── */
+.activity-list{display:flex;flex-direction:column;gap:0;}
+.activity-item {
+  display:flex;align-items:flex-start;gap:12px;
+  padding:11px 0;border-bottom:1px solid rgba(30,45,61,.6);
+  font-size:.8rem;
+}
+.activity-item:last-child{border-bottom:none;}
+.activity-icon {
+  width:28px;height:28px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;flex-shrink:0;margin-top:1px;
+}
+.ai-deploy{background:rgba(0,229,255,.1);}
+.ai-scale{background:rgba(167,139,250,.1);}
+.ai-error{background:rgba(255,61,90,.1);}
+.ai-config{background:rgba(255,171,0,.1);}
+.ai-ok{background:rgba(0,255,157,.1);}
+.activity-body{flex:1;}
+.activity-text{color:var(--text);line-height:1.5;}
+.activity-text strong{color:var(--accent);font-weight:600;}
+.activity-time{font-family:var(--mono);font-size:.62rem;color:var(--faint);margin-top:2px;}
+
+/* ── DEPLOY MODAL ── */
+.modal-overlay {
+  position:fixed;inset:0;z-index:1000;
+  background:rgba(8,12,16,.85);
+  backdrop-filter:blur(16px);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity .25s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+
+.modal {
+  width:540px;max-height:85vh;
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:16px;overflow:hidden;
+  transform:scale(.95) translateY(20px);
+  transition:transform .25s cubic-bezier(.25,.46,.45,.94);
+  box-shadow:0 40px 80px rgba(0,0,0,.8),0 0 0 1px rgba(0,229,255,.1);
+}
+.modal-overlay.open .modal{transform:scale(1) translateY(0);}
+
+.modal-header {
+  padding:18px 22px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+}
+.modal-header h2{
+  font-family:var(--mono);font-size:.9rem;font-weight:700;color:#fff;
+  letter-spacing:-.02em;
+}
+.modal-header h2::before{content:'$ ';color:var(--accent);opacity:.6;}
+.modal-close {
+  margin-left:auto;width:28px;height:28px;border-radius:6px;
+  background:var(--raised);border:1px solid var(--border);
+  color:var(--dim);font-size:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+}
+.modal-close:hover{border-color:var(--danger);color:var(--danger);}
+
+.modal-body{padding:22px;overflow-y:auto;}
+
+.form-group{margin-bottom:18px;}
+.form-label {
+  font-family:var(--mono);font-size:.64rem;font-weight:600;
+  color:var(--dim);letter-spacing:.08em;text-transform:uppercase;
+  display:block;margin-bottom:7px;
+}
+.form-input {
+  width:100%;padding:10px 13px;
+  background:var(--raised);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);font-size:.84rem;
+  font-family:var(--mono);outline:none;
+  transition:border-color .2s,box-shadow .2s;
+}
+.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,229,255,.08);}
+.form-input::placeholder{color:var(--faint);}
+
+.form-select{
+  width:100%;padding:10px 13px;
+  background:var(--raised);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);font-size:.84rem;
+  font-family:var(--mono);outline:none;cursor:pointer;
+  transition:border-color .2s;
+  -webkit-appearance:none;appearance:none;
+}
+.form-select:focus{border-color:var(--accent);}
+.select-wrap{position:relative;}
+.select-wrap::after{
+  content:'▾';position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  color:var(--dim);pointer-events:none;font-size:.8rem;
+}
+
+.runtime-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.runtime-option {
+  padding:10px;border-radius:8px;
+  background:var(--raised);border:2px solid var(--border);
+  cursor:pointer;text-align:center;transition:all .2s;
+}
+.runtime-option:hover{border-color:var(--border2);}
+.runtime-option.selected{border-color:var(--accent);background:rgba(0,229,255,.06);}
+.runtime-icon{font-size:1.2rem;display:block;margin-bottom:4px;}
+.runtime-name{font-family:var(--mono);font-size:.65rem;color:var(--text);font-weight:600;}
+.runtime-ver{font-size:.58rem;color:var(--dim);font-family:var(--mono);}
+
+.toggle-row {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 0;border-bottom:1px solid rgba(30,45,61,.5);
+}
+.toggle-row:last-child{border-bottom:none;}
+.toggle-label{font-size:.8rem;color:var(--text);}
+.toggle-desc{font-size:.7rem;color:var(--dim);margin-top:2px;}
+.toggle {
+  width:38px;height:20px;border-radius:10px;
+  background:var(--faint);position:relative;cursor:pointer;
+  transition:background .2s;flex-shrink:0;border:none;
+}
+.toggle.on{background:var(--accent);}
+.toggle::after{
+  content:'';position:absolute;top:3px;left:3px;
+  width:14px;height:14px;border-radius:50%;background:#fff;
+  transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.3);
+}
+.toggle.on::after{left:21px;}
+
+.modal-footer {
+  padding:16px 22px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:flex-end;gap:10px;
+}
+
+/* ── TOAST ── */
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:10px;}
+.toast {
+  display:flex;align-items:center;gap:12px;
+  padding:13px 16px;border-radius:10px;
+  background:var(--surface);border:1px solid var(--border2);
+  box-shadow:0 20px 48px rgba(0,0,0,.6),0 0 0 1px rgba(0,229,255,.06);
+  font-size:.82rem;color:var(--text);
+  transform:translateX(120%);opacity:0;
+  transition:all .35s cubic-bezier(.25,.46,.45,.94);
+  min-width:280px;max-width:360px;
+}
+.toast.show{transform:none;opacity:1;}
+.toast-icon{font-size:1rem;flex-shrink:0;}
+.toast-body{flex:1;}
+.toast-title{font-weight:600;color:#fff;margin-bottom:2px;font-size:.8rem;}
+.toast-msg{font-size:.72rem;color:var(--dim);}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:0;}
+.tab {
+  padding:8px 16px;font-family:var(--mono);font-size:.72rem;font-weight:600;
+  color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;
+  transition:all .15s;letter-spacing:.04em;margin-bottom:-1px;
+}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* ── LOADING BAR ── */
+.loading-bar {
+  height:2px;background:var(--faint);border-radius:1px;overflow:hidden;margin-bottom:12px;
+}
+.loading-fill {
+  height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));
+  border-radius:1px;
+  animation:loading 2s ease-in-out infinite;
+  transform-origin:left;
+}
+@keyframes loading{0%{transform:scaleX(0) translateX(0)}50%{transform:scaleX(.6) translateX(60%)}100%{transform:scaleX(0) translateX(200%)}}.
+
+/* ── USAGE RING ── */
+.usage-ring-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;}
+.usage-ring{position:relative;width:80px;height:80px;}
+.usage-ring svg{transform:rotate(-90deg);}
+.usage-ring-label{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+}
+.url-val{font-family:var(--mono);font-size:.82rem;font-weight:700;color:#fff;}
+.url-key{font-family:var(--mono);font-size:.5rem;color:var(--dim);letter-spacing:.08em;text-transform:uppercase;}
+
+/* ── NOTIFICATION DOT ── */
+.notif-dot{
+  width:8px;height:8px;border-radius:50%;background:var(--danger);
+  position:absolute;top:4px;right:4px;
+  box-shadow:0 0 8px var(--danger);
+}
+
+/* ── INSTANCE CARDS ── */
+.instance-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.instance-card {
+  background:var(--raised);border:1px solid var(--border);
+  border-radius:9px;padding:12px 14px;
+  transition:border-color .2s;
+}
+.instance-card:hover{border-color:var(--border2);}
+.ic-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.ic-dot{width:8px;height:8px;border-radius:50%;}
+.ic-name{font-family:var(--mono);font-size:.72rem;font-weight:700;color:var(--text);}
+.ic-region{font-family:var(--mono);font-size:.6rem;color:var(--dim);margin-left:auto;}
+.ic-metric{display:flex;justify-content:space-between;margin-bottom:6px;}
+.ic-metric-key{font-family:var(--mono);font-size:.62rem;color:var(--faint);}
+.ic-metric-val{font-family:var(--mono);font-size:.62rem;color:var(--text);}
+.ic-bar{height:3px;background:var(--faint);border-radius:2px;overflow:hidden;}
+.ic-bar-fill{height:3px;border-radius:2px;}
+
+/* ── BUILD PROGRESS ── */
+.build-item {
+  display:flex;align-items:center;gap:12px;
+  padding:10px 0;border-bottom:1px solid rgba(30,45,61,.5);
+}
+.build-item:last-child{border-bottom:none;}
+.build-icon{
+  width:28px;height:28px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;flex-shrink:0;font-family:var(--mono);font-weight:700;
+}
+.bi-num{background:var(--raised);border:1px solid var(--border);color:var(--dim);}
+.bi-ok{background:rgba(0,255,157,.1);border:1px solid rgba(0,255,157,.2);color:var(--accent2);}
+.bi-err{background:rgba(255,61,90,.1);border:1px solid rgba(255,61,90,.2);color:var(--danger);}
+.bi-run{background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.2);color:var(--accent);}
+.build-info{flex:1;}
+.build-commit{font-family:var(--mono);font-size:.72rem;color:var(--text);margin-bottom:2px;}
+.build-meta{font-family:var(--mono);font-size:.6rem;color:var(--dim);}
+.build-dur{font-family:var(--mono);font-size:.68rem;color:var(--faint);flex-shrink:0;}
+
+/* ── SCROLLBAR STYLE IN TERMINAL ── */
+.log-terminal::-webkit-scrollbar{width:3px;}
+.log-terminal::-webkit-scrollbar-thumb{background:var(--faint);}
+
+/* ── REGION FLAG ── */
+.region-badge {
+  font-family:var(--mono);font-size:.58rem;
+  padding:2px 7px;border-radius:3px;
+  background:rgba(167,139,250,.08);color:var(--violet);
+  border:1px solid rgba(167,139,250,.2);
+  letter-spacing:.06em;text-transform:uppercase;
+}
+
+/* TAG */
+.tag {
+  display:inline-block;font-family:var(--mono);font-size:.58rem;font-weight:700;
+  padding:2px 7px;border-radius:3px;letter-spacing:.05em;
+  border:1px solid;
+}
+.tag-node{background:rgba(0,255,157,.06);color:var(--accent2);border-color:rgba(0,255,157,.2);}
+.tag-python{background:rgba(0,229,255,.06);color:var(--accent);border-color:rgba(0,229,255,.2);}
+.tag-go{background:rgba(167,139,250,.06);color:var(--violet);border-color:rgba(167,139,250,.2);}
+.tag-docker{background:rgba(255,171,0,.06);color:var(--warn);border-color:rgba(255,171,0,.2);}
+.tag-ruby{background:rgba(255,61,90,.06);color:var(--danger);border-color:rgba(255,61,90,.2);}
+
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">SF</div>
+    <div>
+      <div class="logo-text">Stack<span>Forge</span></div>
+    </div>
+    <div class="sidebar-version">v2.6</div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Platform</div>
+      <div class="nav-item active" onclick="switchView('dashboard')">
+        <span class="nav-icon">◈</span> Overview
+      </div>
+      <div class="nav-item" onclick="switchView('apps')">
+        <span class="nav-icon">⬡</span> Applications
+        <span class="nav-badge blue">12</span>
+      </div>
+      <div class="nav-item" onclick="switchView('deploys')">
+        <span class="nav-icon">⟳</span> Deployments
+      </div>
+      <div class="nav-item" onclick="switchView('logs')">
+        <span class="nav-icon">≡</span> Logs
+        <span class="nav-badge">3</span>
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Infrastructure</div>
+      <div class="nav-item" onclick="switchView('scaling')">
+        <span class="nav-icon">⇡</span> Auto Scaling
+      </div>
+      <div class="nav-item" onclick="switchView('envs')">
+        <span class="nav-icon">⚙</span> Environments
+      </div>
+      <div class="nav-item" onclick="switchView('domains')">
+        <span class="nav-icon">◉</span> Domains & SSL
+        <span class="nav-badge green">✓</span>
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Addons</div>
+      <div class="nav-item">
+        <span class="nav-icon">⬢</span> Databases
+      </div>
+      <div class="nav-item">
+        <span class="nav-icon">◎</span> Redis Cache
+      </div>
+      <div class="nav-item">
+        <span class="nav-icon">↭</span> Message Queue
+      </div>
+      <div class="nav-item">
+        <span class="nav-icon">◐</span> Object Storage
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Monitoring</div>
+      <div class="nav-item">
+        <span class="nav-icon">◑</span> Metrics
+      </div>
+      <div class="nav-item">
+        <span class="nav-icon">⚠</span> Alerts
+        <span class="nav-badge">2</span>
+      </div>
+      <div class="nav-item">
+        <span class="nav-icon">⬤</span> Uptime
+      </div>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="user-avatar">LP</div>
+      <div>
+        <div class="user-name">Le Thanh Phuc</div>
+        <div class="user-role">admin · pro plan</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-title">
+      <span>stackforge.io</span>
+      <span class="sep">/</span>
+      <span class="current" id="topbar-current">Overview</span>
+    </div>
+    <div class="topbar-right">
+      <div class="status-indicator">
+        <div class="status-dot"></div>
+        All systems operational
+      </div>
+      <button class="btn btn-ghost" onclick="showToast('info','Refreshed','Dashboard data updated.')">⟳ Refresh</button>
+      <button class="btn btn-primary" onclick="openModal()">⊕ Deploy App</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ═══ DASHBOARD VIEW ═══ -->
+    <div id="view-dashboard">
+      <div class="overview-header">
+        <h1>Platform Overview</h1>
+        <p>Workspace: <span class="hl">production-cluster-sg</span> · Region: ap-southeast-1 · 12 apps running</p>
+      </div>
+
+      <!-- METRICS -->
+      <div class="metrics-row">
+        <div class="metric-card mc-cyan">
+          <div class="metric-label">Apps Running</div>
+          <div class="metric-value">12<span class="unit"> active</span></div>
+          <div class="metric-sub"><span class="up">↑ 2</span> deployed this week</div>
+          <svg class="metric-sparkline" viewBox="0 0 80 40">
+            <polyline points="0,35 15,28 25,32 35,20 45,24 55,15 65,18 80,10" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity=".8"/>
+          </svg>
+        </div>
+        <div class="metric-card mc-green">
+          <div class="metric-label">Requests / sec</div>
+          <div class="metric-value">4.2<span class="unit">k</span></div>
+          <div class="metric-sub"><span class="up">↑ 18%</span> vs last hour</div>
+          <svg class="metric-sparkline" viewBox="0 0 80 40">
+            <polyline points="0,30 10,25 20,28 30,18 40,22 50,12 60,16 70,8 80,14" fill="none" stroke="#00ff9d" stroke-width="1.5" opacity=".8"/>
+          </svg>
+        </div>
+        <div class="metric-card mc-warn">
+          <div class="metric-label">Avg Response</div>
+          <div class="metric-value">124<span class="unit">ms</span></div>
+          <div class="metric-sub"><span class="dn">↑ 12ms</span> from baseline</div>
+          <svg class="metric-sparkline" viewBox="0 0 80 40">
+            <polyline points="0,20 12,18 22,22 32,16 42,28 52,20 62,24 72,18 80,22" fill="none" stroke="#ffab00" stroke-width="1.5" opacity=".8"/>
+          </svg>
+        </div>
+        <div class="metric-card mc-violet">
+          <div class="metric-label">Error Rate</div>
+          <div class="metric-value">0.4<span class="unit">%</span></div>
+          <div class="metric-sub"><span class="up">↓ 0.1%</span> improvement</div>
+          <svg class="metric-sparkline" viewBox="0 0 80 40">
+            <polyline points="0,15 12,20 22,12 32,18 42,8 52,14 62,10 72,16 80,8" fill="none" stroke="#a78bfa" stroke-width="1.5" opacity=".8"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <!-- APPS TABLE -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Applications</div>
+            <div class="panel-actions">
+              <span style="font-family:var(--mono);font-size:.62rem;color:var(--dim);">12 total</span>
+              <button class="btn btn-ghost" style="padding:4px 10px;font-size:.7rem;" onclick="switchView('apps')">View all →</button>
+            </div>
+          </div>
+          <div style="padding:0 4px;">
+            <table class="apps-table">
+              <thead>
+                <tr>
+                  <th>App</th>
+                  <th>Status</th>
+                  <th>Runtime</th>
+                  <th>CPU</th>
+                  <th>Memory</th>
+                  <th>Uptime</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><div class="app-name-cell"><div class="app-icon" style="background:rgba(0,229,255,.1);">⬡</div><div><div style="font-weight:600;color:#fff;font-size:.8rem;">api-gateway</div><a class="app-url" href="#">api.stackforge.io</a></div></div></td>
+                  <td><span class="status-pill sp-running"><span class="sp-dot"></span>running</span></td>
+                  <td><span class="tag tag-node">Node 20</span></td>
+                  <td><div class="resource-bar-wrap"><div style="font-family:var(--mono);font-size:.62rem;color:var(--dim);margin-bottom:3px;">34%</div><div class="resource-bar-bg"><div class="resource-bar-fill" style="width:34%;background:var(--accent);"></div></div></div></td>
+                  <td><div class="resource-bar-wrap"><div style="font-family:var(--mono);font-size:.62rem;color:var(--dim);margin-bottom:3px;">512MB</div><div class="resource-bar-bg"><div class="resource-bar-fill" style="width:50%;background:var(--accent2);"></div></div></div></td>
+                  <td style="font-family:var(--mono);font-size:.7rem;color:var(--dim);">14d 6h</td>
+                </tr>
+                <tr>
+                  <td><div class="app-name-cell"><div class="app-icon" style="background:rgba(0,255,157,.1);">⬡</div><div><div style="font-weight:600;color:#fff;font-size:.8rem;">auth-service</div><a class="app-url" href="#">auth.stackforge.io</a></div></div></td>
+                  <td><span class="status-pill sp-running"><span class="sp-dot"></span>running</span></td>
+                  <td><span class="tag tag-go">Go 1.22</span></td>
+                  <td><div class="resource-bar-wrap"><div style="font-family:var(--mono);font-size:.62rem;color:var(--dim);margin-bottom:3px;">12%</div><div class="resource-bar-bg"><div class="resource-bar-fill" style="width:12%;background:var(--accent);"></div></div></div></td>
+                  <td><div class="resource-bar-wrap"><div style="font-family:var(--mono);font-size:.62rem;color:var(--dim);margin-bottom:3px;">128MB</div><div class="resource-bar-bg"><div class="resource-bar-fill" style="width:12%;background:var(--accent2);"></div></div></div></td>
+                  <td style="font-family:var(--mono);font-size:.7rem;color:var(--dim);">21d 4h</td>
+                </tr>
+                <tr>
+                  <td><div class="app-name-cell"><div class="app-icon" style="background:rgba(0,229,255,.15);">⬡</div><div><div style="font-weight:600;color:#fff;font-size:.8rem;">data-pipeline</div><a class="app-url" href="#">worker.stackforge.io</a></div></div></td>
+                  <td><span class="status-pill sp-building"><span class="sp-dot"></span>building</span></td>
+                  <td><span class="tag tag-python">Python 3.12</span></td>
+                  <td><div class="resource-bar-wrap"><div style="font-family:var(--mono);font-size:.62rem;color:var(--dim);margin-bottom:3px;">72%</div><div class="resource-bar-bg"><div class="resource-bar-fill" style="width:72%;background:var(--warn);"></div></div></div></td>
+                  <td><div class="resource-bar-wrap"><div style="font-family:var(--mono);font-size:.62rem;color:var(--dim);margin-bottom:3px;">2.1GB</div><div class="resource-bar-bg"><div class="resource-bar-fill" style="width:82%;background:var(--warn);"></div></div></div></td>
+                  <td style="font-family:var(--mono);font-size:.7rem;color:var(--dim);">0d 2h</td>
+                </tr>
+                <tr>
+                  <td><div class="app-name-cell"><div class="app-icon" style="background:rgba(255,61,90,.1);">⬡</div><div><div style="font-weight:600;color:#fff;font-size:.8rem;">notification-svc</div><a class="app-url" href="#">notify.stackforge.io</a></div></div></td>
+                  <td><span class="status-pill sp-error"><span class="sp-dot" style="animation:none;"></span>crash</span></td>
+                  <td><span class="tag tag-node">Node 18</span></td>
+                  <td><div class="resource-bar-wrap"><div style="font-family:var(--mono);font-size:.62rem;color:var(--danger);margin-bottom:3px;">—</div><div class="resource-bar-bg"><div class="resource-bar-fill" style="width:0%;background:var(--danger);"></div></div></div></td>
+                  <td><div class="resource-bar-wrap"><div style="font-family:var(--mono);font-size:.62rem;color:var(--danger);margin-bottom:3px;">—</div><div class="resource-bar-bg"></div></div></td>
+                  <td style="font-family:var(--mono);font-size:.7rem;color:var(--danger);">crashed</td>
+                </tr>
+                <tr>
+                  <td><div class="app-name-cell"><div class="app-icon" style="background:rgba(167,139,250,.1);">⬡</div><div><div style="font-weight:600;color:#fff;font-size:.8rem;">frontend-web</div><a class="app-url" href="#">app.stackforge.io</a></div></div></td>
+                  <td><span class="status-pill sp-running"><span class="sp-dot"></span>running</span></td>
+                  <td><span class="tag tag-node">Node 20</span></td>
+                  <td><div class="resource-bar-wrap"><div style="font-family:var(--mono);font-size:.62rem;color:var(--dim);margin-bottom:3px;">8%</div><div class="resource-bar-bg"><div class="resource-bar-fill" style="width:8%;background:var(--accent);"></div></div></div></td>
+                  <td><div class="resource-bar-wrap"><div style="font-family:var(--mono);font-size:.62rem;color:var(--dim);margin-bottom:3px;">256MB</div><div class="resource-bar-bg"><div class="resource-bar-fill" style="width:25%;background:var(--accent2);"></div></div></div></td>
+                  <td style="font-family:var(--mono);font-size:.7rem;color:var(--dim);">7d 12h</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ACTIVITY FEED -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Activity</div>
+          </div>
+          <div class="panel-body" style="padding-top:8px;padding-bottom:8px;">
+            <div class="activity-list">
+              <div class="activity-item">
+                <div class="activity-icon ai-deploy">🚀</div>
+                <div class="activity-body">
+                  <div class="activity-text"><strong>api-gateway</strong> deployed successfully — build #84</div>
+                  <div class="activity-time">2 min ago · by lethanhphuc</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon ai-error">⚠</div>
+                <div class="activity-body">
+                  <div class="activity-text"><strong>notification-svc</strong> crashed — OOM killed (512MB limit)</div>
+                  <div class="activity-time">14 min ago · system</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon ai-scale">⇡</div>
+                <div class="activity-body">
+                  <div class="activity-text"><strong>data-pipeline</strong> scaled up — 2→4 instances (CPU > 80%)</div>
+                  <div class="activity-time">38 min ago · autoscaler</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon ai-config">⚙</div>
+                <div class="activity-body">
+                  <div class="activity-text">ENV vars updated — <strong>auth-service</strong> (JWT_SECRET rotated)</div>
+                  <div class="activity-time">1h ago · by lethanhphuc</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon ai-ok">✓</div>
+                <div class="activity-body">
+                  <div class="activity-text">SSL certificate renewed — <strong>*.stackforge.io</strong> (Let's Encrypt)</div>
+                  <div class="activity-time">3h ago · system</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon ai-deploy">🚀</div>
+                <div class="activity-body">
+                  <div class="activity-text"><strong>frontend-web</strong> deployed — build #21 (preview→prod)</div>
+                  <div class="activity-time">5h ago · by lethanhphuc</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTTOM ROW -->
+      <div class="three-col">
+
+        <!-- BUILD PIPELINE -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Current Deploy</div>
+            <div class="panel-actions">
+              <span class="status-pill sp-building" style="font-size:.6rem;padding:2px 8px;"><span class="sp-dot"></span>in progress</span>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div style="font-family:var(--mono);font-size:.68rem;color:var(--dim);margin-bottom:14px;">
+              data-pipeline · commit <span style="color:var(--accent);">a3f7c92</span>
+            </div>
+            <div class="loading-bar"><div class="loading-fill"></div></div>
+            <div class="pipeline">
+              <div class="pipeline-step">
+                <div class="ps-dot ps-done">✓</div>
+                <div class="ps-label">Clone</div>
+                <div class="ps-time">2s</div>
+              </div>
+              <div class="pipeline-step">
+                <div class="ps-dot ps-done">✓</div>
+                <div class="ps-label">Install</div>
+                <div class="ps-time">34s</div>
+              </div>
+              <div class="pipeline-step">
+                <div class="ps-dot ps-done">✓</div>
+                <div class="ps-label">Test</div>
+                <div class="ps-time">48s</div>
+              </div>
+              <div class="pipeline-step">
+                <div class="ps-dot ps-active">◉</div>
+                <div class="ps-label">Build</div>
+                <div class="ps-time">…</div>
+              </div>
+              <div class="pipeline-step">
+                <div class="ps-dot ps-pending">○</div>
+                <div class="ps-label">Push</div>
+                <div class="ps-time">—</div>
+              </div>
+              <div class="pipeline-step">
+                <div class="ps-dot ps-pending">○</div>
+                <div class="ps-label">Deploy</div>
+                <div class="ps-time">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RESOURCE USAGE RINGS -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Cluster Resources</div>
+          </div>
+          <div class="panel-body" style="display:flex;justify-content:space-around;align-items:center;padding:10px;">
+            <div class="usage-ring-wrap">
+              <div class="usage-ring">
+                <svg width="80" height="80" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="30" fill="none" stroke="#1e2d3d" stroke-width="8"/>
+                  <circle cx="40" cy="40" r="30" fill="none" stroke="#00e5ff" stroke-width="8"
+                    stroke-dasharray="188.5" stroke-dashoffset="56.5" stroke-linecap="round"
+                    style="filter:drop-shadow(0 0 6px #00e5ff)"/>
+                </svg>
+                <div class="usage-ring-label">
+                  <div class="url-val">70%</div>
+                  <div class="url-key">CPU</div>
+                </div>
+              </div>
+            </div>
+            <div class="usage-ring-wrap">
+              <div class="usage-ring">
+                <svg width="80" height="80" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="30" fill="none" stroke="#1e2d3d" stroke-width="8"/>
+                  <circle cx="40" cy="40" r="30" fill="none" stroke="#00ff9d" stroke-width="8"
+                    stroke-dasharray="188.5" stroke-dashoffset="75.4" stroke-linecap="round"
+                    style="filter:drop-shadow(0 0 6px #00ff9d)"/>
+                </svg>
+                <div class="usage-ring-label">
+                  <div class="url-val">60%</div>
+                  <div class="url-key">RAM</div>
+                </div>
+              </div>
+            </div>
+            <div class="usage-ring-wrap">
+              <div class="usage-ring">
+                <svg width="80" height="80" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="30" fill="none" stroke="#1e2d3d" stroke-width="8"/>
+                  <circle cx="40" cy="40" r="30" fill="none" stroke="#a78bfa" stroke-width="8"
+                    stroke-dasharray="188.5" stroke-dashoffset="122.5" stroke-linecap="round"
+                    style="filter:drop-shadow(0 0 6px #a78bfa)"/>
+                </svg>
+                <div class="usage-ring-label">
+                  <div class="url-val">35%</div>
+                  <div class="url-key">DISK</div>
+                </div>
+              </div>
+            </div>
+            <div class="usage-ring-wrap">
+              <div class="usage-ring">
+                <svg width="80" height="80" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="30" fill="none" stroke="#1e2d3d" stroke-width="8"/>
+                  <circle cx="40" cy="40" r="30" fill="none" stroke="#ffab00" stroke-width="8"
+                    stroke-dasharray="188.5" stroke-dashoffset="94.25" stroke-linecap="round"
+                    style="filter:drop-shadow(0 0 6px #ffab00)"/>
+                </svg>
+                <div class="usage-ring-label">
+                  <div class="url-val">50%</div>
+                  <div class="url-key">NET</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TRAFFIC CHART -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Traffic (24h)</div>
+          </div>
+          <div class="panel-body" style="padding-top:10px;">
+            <div class="chart-area" id="trafficChart">
+              <!-- generated by JS -->
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:6px;padding:0 4px;">
+              <span style="font-family:var(--mono);font-size:.55rem;color:var(--faint);">00:00</span>
+              <span style="font-family:var(--mono);font-size:.55rem;color:var(--faint);">06:00</span>
+              <span style="font-family:var(--mono);font-size:.55rem;color:var(--faint);">12:00</span>
+              <span style="font-family:var(--mono);font-size:.55rem;color:var(--faint);">18:00</span>
+              <span style="font-family:var(--mono);font-size:.55rem;color:var(--faint);">now</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ LOGS VIEW ═══ -->
+    <div id="view-logs" style="display:none;">
+      <div class="overview-header">
+        <h1>Live Logs</h1>
+        <p>Streaming from <span class="hl">api-gateway</span> · Real-time · Last 500 lines</p>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Log Stream</div>
+          <div class="panel-actions">
+            <select class="form-select" style="width:160px;padding:5px 30px 5px 10px;font-size:.72rem;" onchange="filterLogs(this.value)">
+              <option value="all">All levels</option>
+              <option value="info">INFO only</option>
+              <option value="warn">WARN only</option>
+              <option value="error">ERROR only</option>
+            </select>
+            <button class="btn btn-ghost" style="padding:4px 10px;font-size:.7rem;" onclick="clearLogs()">Clear</button>
+            <button class="btn btn-primary" style="padding:5px 12px;font-size:.7rem;" id="log-toggle" onclick="toggleLogs()">⏸ Pause</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="log-terminal" id="log-output"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ENV VIEW ═══ -->
+    <div id="view-envs" style="display:none;">
+      <div class="overview-header">
+        <h1>Environment Variables</h1>
+        <p>App: <span class="hl">api-gateway</span> · 8 variables configured</p>
+      </div>
+      <div class="two-col" style="grid-template-columns:1fr 280px;">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Variables</div>
+            <div class="panel-actions">
+              <button class="btn btn-primary" style="padding:5px 12px;font-size:.72rem;" onclick="showToast('ok','Saved','Environment variables updated. Restart required.')">⊕ Add Variable</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="env-list" id="env-list">
+              <div class="env-item">
+                <span class="env-key">NODE_ENV</span>
+                <span class="env-val">production</span>
+                <span class="env-type et-public">public</span>
+                <button class="env-toggle">edit</button>
+              </div>
+              <div class="env-item">
+                <span class="env-key">DATABASE_URL</span>
+                <span class="env-val secret" id="db-url">••••••••••••••••••••••••</span>
+                <span class="env-type et-secret">secret</span>
+                <button class="env-toggle" onclick="toggleSecret('db-url','postgresql://user:pass@db.internal:5432/prod')">show</button>
+              </div>
+              <div class="env-item">
+                <span class="env-key">JWT_SECRET</span>
+                <span class="env-val secret" id="jwt-secret">••••••••••••••••••••••••</span>
+                <span class="env-type et-secret">secret</span>
+                <button class="env-toggle" onclick="toggleSecret('jwt-secret','sk-prod-a8f3k2...')">show</button>
+              </div>
+              <div class="env-item">
+                <span class="env-key">REDIS_URL</span>
+                <span class="env-val">redis://cache.internal:6379</span>
+                <span class="env-type et-public">public</span>
+                <button class="env-toggle">edit</button>
+              </div>
+              <div class="env-item">
+                <span class="env-key">PORT</span>
+                <span class="env-val">3000</span>
+                <span class="env-type et-public">public</span>
+                <button class="env-toggle">edit</button>
+              </div>
+              <div class="env-item">
+                <span class="env-key">AWS_ACCESS_KEY</span>
+                <span class="env-val secret" id="aws-key">••••••••••••••••••••••••</span>
+                <span class="env-type et-secret">secret</span>
+                <button class="env-toggle" onclick="toggleSecret('aws-key','AKIAIOSFODNN7EXAMPLE')">show</button>
+              </div>
+              <div class="env-item">
+                <span class="env-key">API_RATE_LIMIT</span>
+                <span class="env-val">1000</span>
+                <span class="env-type et-public">public</span>
+                <button class="env-toggle">edit</button>
+              </div>
+              <div class="env-item">
+                <span class="env-key">CORS_ORIGIN</span>
+                <span class="env-val">https://app.stackforge.io</span>
+                <span class="env-type et-public">public</span>
+                <button class="env-toggle">edit</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">Actions</div></div>
+            <div class="panel-body" style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn btn-ghost" style="width:100%;justify-content:flex-start;" onclick="showToast('info','Restarting','App restart triggered with new env vars.')">⟳ Restart with new vars</button>
+              <button class="btn btn-ghost" style="width:100%;justify-content:flex-start;" onclick="showToast('ok','Exported','Variables exported as .env file.')">⬇ Export .env file</button>
+              <button class="btn btn-ghost" style="width:100%;justify-content:flex-start;" onclick="showToast('info','Synced','Variables synced to staging environment.')">⇄ Sync to staging</button>
+              <button class="btn btn-danger" style="width:100%;justify-content:flex-start;">⚠ Rotate secrets</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">Info</div></div>
+            <div class="panel-body">
+              <div style="font-family:var(--mono);font-size:.68rem;color:var(--dim);line-height:1.8;">
+                <div>Total vars: <span style="color:var(--text);">8</span></div>
+                <div>Secrets: <span style="color:var(--violet);">3</span></div>
+                <div>Last changed: <span style="color:var(--text);">1h ago</span></div>
+                <div>Auto-restart: <span style="color:var(--accent2);">enabled</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ DOMAINS VIEW ═══ -->
+    <div id="view-domains" style="display:none;">
+      <div class="overview-header">
+        <h1>Domains & SSL</h1>
+        <p>5 domains configured · All certificates valid</p>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Domains</div>
+          <div class="panel-actions">
+            <button class="btn btn-primary" style="padding:5px 12px;font-size:.72rem;" onclick="showToast('info','Adding','Enter your domain and configure DNS.')">⊕ Add Domain</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="domain-list">
+            <div class="domain-item">
+              <span class="domain-lock">🔒</span>
+              <span class="domain-name">api.stackforge.io</span>
+              <span class="domain-primary">PRIMARY</span>
+              <span class="domain-ssl">SSL · expires 90d</span>
+              <span class="region-badge">SG</span>
+            </div>
+            <div class="domain-item">
+              <span class="domain-lock">🔒</span>
+              <span class="domain-name">app.stackforge.io</span>
+              <span class="domain-ssl">SSL · expires 88d</span>
+              <span class="region-badge">SG</span>
+            </div>
+            <div class="domain-item">
+              <span class="domain-lock">🔒</span>
+              <span class="domain-name">auth.stackforge.io</span>
+              <span class="domain-ssl">SSL · expires 85d</span>
+              <span class="region-badge">SG</span>
+            </div>
+            <div class="domain-item">
+              <span class="domain-lock">🔒</span>
+              <span class="domain-name">cdn.stackforge.io</span>
+              <span class="domain-ssl">SSL · expires 90d</span>
+              <span class="region-badge">CF</span>
+            </div>
+            <div class="domain-item">
+              <span class="domain-lock" style="color:var(--warn);">⚠</span>
+              <span class="domain-name">legacy.stackforge.io</span>
+              <span class="domain-ssl" style="color:var(--warn);">SSL · expires 8d — RENEW SOON</span>
+              <span class="region-badge">SG</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SCALING VIEW ═══ -->
+    <div id="view-scaling" style="display:none;">
+      <div class="overview-header">
+        <h1>Auto Scaling</h1>
+        <p>Horizontal pod autoscaling · Current cluster load: <span class="hl">moderate</span></p>
+      </div>
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">Instance Groups</div></div>
+          <div class="panel-body">
+            <div class="instance-grid">
+              <div class="instance-card">
+                <div class="ic-head"><div class="ic-dot" style="background:var(--accent2);box-shadow:0 0 6px var(--accent2);"></div><span class="ic-name">api-gateway</span><span class="ic-region">×4 inst</span></div>
+                <div class="ic-metric"><span class="ic-metric-key">CPU avg</span><span class="ic-metric-val">34%</span></div>
+                <div class="ic-bar"><div class="ic-bar-fill" style="width:34%;background:var(--accent);"></div></div>
+                <div style="height:6px;"></div>
+                <div class="ic-metric"><span class="ic-metric-key">MEM avg</span><span class="ic-metric-val">512MB</span></div>
+                <div class="ic-bar"><div class="ic-bar-fill" style="width:50%;background:var(--accent2);"></div></div>
+              </div>
+              <div class="instance-card">
+                <div class="ic-head"><div class="ic-dot" style="background:var(--warn);box-shadow:0 0 6px var(--warn);"></div><span class="ic-name">data-pipeline</span><span class="ic-region">×4 inst</span></div>
+                <div class="ic-metric"><span class="ic-metric-key">CPU avg</span><span class="ic-metric-val">72%</span></div>
+                <div class="ic-bar"><div class="ic-bar-fill" style="width:72%;background:var(--warn);"></div></div>
+                <div style="height:6px;"></div>
+                <div class="ic-metric"><span class="ic-metric-key">MEM avg</span><span class="ic-metric-val">2.1GB</span></div>
+                <div class="ic-bar"><div class="ic-bar-fill" style="width:82%;background:var(--warn);"></div></div>
+              </div>
+              <div class="instance-card">
+                <div class="ic-head"><div class="ic-dot" style="background:var(--accent2);"></div><span class="ic-name">auth-service</span><span class="ic-region">×2 inst</span></div>
+                <div class="ic-metric"><span class="ic-metric-key">CPU avg</span><span class="ic-metric-val">12%</span></div>
+                <div class="ic-bar"><div class="ic-bar-fill" style="width:12%;background:var(--accent);"></div></div>
+                <div style="height:6px;"></div>
+                <div class="ic-metric"><span class="ic-metric-key">MEM avg</span><span class="ic-metric-val">128MB</span></div>
+                <div class="ic-bar"><div class="ic-bar-fill" style="width:12%;background:var(--accent2);"></div></div>
+              </div>
+              <div class="instance-card">
+                <div class="ic-head"><div class="ic-dot" style="background:var(--accent2);"></div><span class="ic-name">frontend-web</span><span class="ic-region">×2 inst</span></div>
+                <div class="ic-metric"><span class="ic-metric-key">CPU avg</span><span class="ic-metric-val">8%</span></div>
+                <div class="ic-bar"><div class="ic-bar-fill" style="width:8%;background:var(--accent);"></div></div>
+                <div style="height:6px;"></div>
+                <div class="ic-metric"><span class="ic-metric-key">MEM avg</span><span class="ic-metric-val">256MB</span></div>
+                <div class="ic-bar"><div class="ic-bar-fill" style="width:25%;background:var(--accent2);"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">Scaling Policy</div></div>
+          <div class="panel-body">
+            <div class="toggle-row">
+              <div><div class="toggle-label">Auto Scale (CPU)</div><div class="toggle-desc">Scale when CPU > 70%</div></div>
+              <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+            </div>
+            <div class="toggle-row">
+              <div><div class="toggle-label">Auto Scale (Memory)</div><div class="toggle-desc">Scale when RAM > 85%</div></div>
+              <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+            </div>
+            <div class="toggle-row">
+              <div><div class="toggle-label">Scale-to-Zero</div><div class="toggle-desc">Remove idle instances after 10min</div></div>
+              <button class="toggle" onclick="this.classList.toggle('on')"></button>
+            </div>
+            <div class="toggle-row">
+              <div><div class="toggle-label">Predictive Scaling</div><div class="toggle-desc">Pre-scale before traffic spikes</div></div>
+              <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+            </div>
+            <div class="toggle-row">
+              <div><div class="toggle-label">Alert on Scale</div><div class="toggle-desc">Notify when scaling events occur</div></div>
+              <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+            </div>
+            <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">
+              <div style="font-family:var(--mono);font-size:.64rem;color:var(--dim);margin-bottom:8px;">MIN INSTANCES</div>
+              <input type="range" min="1" max="10" value="2" style="width:100%;accent-color:var(--accent);" oninput="this.nextElementSibling.textContent=this.value"/>
+              <div style="font-family:var(--mono);font-size:.72rem;color:var(--accent);text-align:center;margin-top:4px;">2</div>
+              <div style="font-family:var(--mono);font-size:.64rem;color:var(--dim);margin-top:12px;margin-bottom:8px;">MAX INSTANCES</div>
+              <input type="range" min="2" max="50" value="16" style="width:100%;accent-color:var(--accent2);" oninput="this.nextElementSibling.textContent=this.value"/>
+              <div style="font-family:var(--mono);font-size:.72rem;color:var(--accent2);text-align:center;margin-top:4px;">16</div>
+            </div>
+            <button class="btn btn-primary" style="width:100%;margin-top:14px;justify-content:center;" onclick="showToast('ok','Saved','Scaling policy updated successfully.')">Save Policy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ DEPLOYS VIEW ═══ -->
+    <div id="view-deploys" style="display:none;">
+      <div class="overview-header">
+        <h1>Deployment History</h1>
+        <p>Last 10 deployments across all apps</p>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Build History</div></div>
+        <div class="panel-body" style="padding-top:4px;padding-bottom:4px;">
+          <div id="build-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ APPS VIEW ═══ -->
+    <div id="view-apps" style="display:none;">
+      <div class="overview-header">
+        <h1>Applications</h1>
+        <p>12 apps · 3 regions · All managed by StackForge PaaS</p>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="openModal()">⊕ New App</button>
+        <button class="btn btn-ghost" onclick="showToast('info','Refreshing','App list refreshed.')">⟳ Refresh</button>
+        <input class="form-input" placeholder="Filter apps..." style="flex:1;min-width:200px;max-width:300px;padding:7px 12px;font-size:.8rem;"/>
+      </div>
+      <div class="panel">
+        <div class="panel-body" style="padding:0 4px;">
+          <table class="apps-table">
+            <thead>
+              <tr>
+                <th>Application</th>
+                <th>Status</th>
+                <th>Runtime</th>
+                <th>Region</th>
+                <th>Instances</th>
+                <th>CPU</th>
+                <th>Memory</th>
+                <th>Uptime</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="full-apps-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- DEPLOY MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="logo-mark" style="width:26px;height:26px;font-size:12px;">SF</div>
+      <h2>deploy new application</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab(this,'tab-source')">Source</div>
+        <div class="tab" onclick="switchTab(this,'tab-runtime')">Runtime</div>
+        <div class="tab" onclick="switchTab(this,'tab-settings')">Settings</div>
+      </div>
+
+      <div class="tab-panel active" id="tab-source">
+        <div class="form-group">
+          <label class="form-label">App Name</label>
+          <input class="form-input" placeholder="my-awesome-api" type="text" id="app-name-input"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Git Repository</label>
+          <input class="form-input" placeholder="https://github.com/user/repo" type="text"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Branch</label>
+          <div class="select-wrap">
+            <select class="form-select">
+              <option>main</option>
+              <option>develop</option>
+              <option>staging</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Deploy Region</label>
+          <div class="select-wrap">
+            <select class="form-select">
+              <option>ap-southeast-1 (Singapore)</option>
+              <option>us-east-1 (Virginia)</option>
+              <option>eu-west-1 (Ireland)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-runtime">
+        <div class="form-group">
+          <label class="form-label">Select Runtime</label>
+          <div class="runtime-grid">
+            <div class="runtime-option selected" onclick="selectRuntime(this)">
+              <span class="runtime-icon">🟢</span>
+              <div class="runtime-name">Node.js</div>
+              <div class="runtime-ver">v20 LTS</div>
+            </div>
+            <div class="runtime-option" onclick="selectRuntime(this)">
+              <span class="runtime-icon">🐍</span>
+              <div class="runtime-name">Python</div>
+              <div class="runtime-ver">3.12</div>
+            </div>
+            <div class="runtime-option" onclick="selectRuntime(this)">
+              <span class="runtime-icon">🦫</span>
+              <div class="runtime-name">Go</div>
+              <div class="runtime-ver">1.22</div>
+            </div>
+            <div class="runtime-option" onclick="selectRuntime(this)">
+              <span class="runtime-icon">🐳</span>
+              <div class="runtime-name">Docker</div>
+              <div class="runtime-ver">custom</div>
+            </div>
+            <div class="runtime-option" onclick="selectRuntime(this)">
+              <span class="runtime-icon">💎</span>
+              <div class="runtime-name">Ruby</div>
+              <div class="runtime-ver">3.3</div>
+            </div>
+            <div class="runtime-option" onclick="selectRuntime(this)">
+              <span class="runtime-icon">☕</span>
+              <div class="runtime-name">Java</div>
+              <div class="runtime-ver">21 LTS</div>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Instance Size</label>
+          <div class="select-wrap">
+            <select class="form-select">
+              <option>Micro — 0.5 CPU / 512MB ($5/mo)</option>
+              <option selected>Standard — 1 CPU / 1GB ($15/mo)</option>
+              <option>Pro — 2 CPU / 2GB ($35/mo)</option>
+              <option>Performance — 4 CPU / 8GB ($89/mo)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Start Command</label>
+          <input class="form-input" placeholder="npm start" type="text" value="npm start"/>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-settings">
+        <div class="toggle-row">
+          <div><div class="toggle-label">Auto Deploy on push</div><div class="toggle-desc">Deploy automatically when branch is pushed</div></div>
+          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Health check</div><div class="toggle-desc">Monitor /health endpoint</div></div>
+          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Auto SSL (Let's Encrypt)</div><div class="toggle-desc">Free HTTPS certificate auto-renewed</div></div>
+          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Preview deployments</div><div class="toggle-desc">Create preview URL for each PR</div></div>
+          <button class="toggle" onclick="this.classList.toggle('on')"></button>
+        </div>
+        <div class="form-group" style="margin-top:16px;">
+          <label class="form-label">Health check path</label>
+          <input class="form-input" placeholder="/health" type="text" value="/health"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="triggerDeploy()">🚀 Deploy Application</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toasts"></div>
+
+<script>
+// ── DATA ──
+const apps = [
+  { name:'api-gateway', url:'api.stackforge.io', status:'running', runtime:'Node 20', tag:'node', region:'SG', instances:4, cpu:34, mem:'512MB', memPct:50, uptime:'14d 6h' },
+  { name:'auth-service', url:'auth.stackforge.io', status:'running', runtime:'Go 1.22', tag:'go', region:'SG', instances:2, cpu:12, mem:'128MB', memPct:12, uptime:'21d 4h' },
+  { name:'data-pipeline', url:'worker.stackforge.io', status:'building', runtime:'Python 3.12', tag:'python', region:'SG', instances:4, cpu:72, mem:'2.1GB', memPct:82, uptime:'0d 2h' },
+  { name:'notification-svc', url:'notify.stackforge.io', status:'error', runtime:'Node 18', tag:'node', region:'SG', instances:0, cpu:0, mem:'—', memPct:0, uptime:'crashed' },
+  { name:'frontend-web', url:'app.stackforge.io', status:'running', runtime:'Node 20', tag:'node', region:'SG', instances:2, cpu:8, mem:'256MB', memPct:25, uptime:'7d 12h' },
+  { name:'payment-svc', url:'pay.stackforge.io', status:'running', runtime:'Go 1.22', tag:'go', region:'US', instances:3, cpu:22, mem:'384MB', memPct:37, uptime:'5d 8h' },
+  { name:'search-engine', url:'search.stackforge.io', status:'running', runtime:'Python 3.12', tag:'python', region:'EU', instances:2, cpu:45, mem:'1.2GB', memPct:60, uptime:'3d 1h' },
+  { name:'email-worker', url:'mail.stackforge.io', status:'stopped', runtime:'Node 20', tag:'node', region:'SG', instances:0, cpu:0, mem:'—', memPct:0, uptime:'stopped' },
+  { name:'cdn-proxy', url:'cdn.stackforge.io', status:'running', runtime:'Go 1.22', tag:'go', region:'CF', instances:6, cpu:18, mem:'256MB', memPct:25, uptime:'30d' },
+  { name:'analytics-api', url:'analytics.stackforge.io', status:'running', runtime:'Python 3.12', tag:'python', region:'SG', instances:2, cpu:55, mem:'768MB', memPct:75, uptime:'2d 6h' },
+  { name:'webhook-svc', url:'hooks.stackforge.io', status:'running', runtime:'Node 20', tag:'node', region:'SG', instances:1, cpu:5, mem:'128MB', memPct:12, uptime:'10d' },
+  { name:'legacy-api', url:'legacy.stackforge.io', status:'running', runtime:'Ruby 3.3', tag:'ruby', region:'SG', instances:1, cpu:8, mem:'256MB', memPct:25, uptime:'60d' },
+];
+
+const builds = [
+  { num:'#84', app:'api-gateway', commit:'a3f7c92', msg:'fix: rate limiting edge case', status:'ok', dur:'1m 24s', who:'lethanhphuc', time:'2m ago' },
+  { num:'#83', app:'data-pipeline', commit:'7b2e1f4', msg:'feat: add kafka consumer group', status:'running', dur:'…', who:'lethanhphuc', time:'12m ago' },
+  { num:'#82', app:'frontend-web', commit:'c9d5a81', msg:'chore: upgrade tailwind to v4', status:'ok', dur:'54s', who:'lethanhphuc', time:'5h ago' },
+  { num:'#81', app:'notification-svc', commit:'2f8b3e7', msg:'fix: memory leak in ws handler', status:'err', dur:'32s', who:'lethanhphuc', time:'14m ago' },
+  { num:'#80', app:'auth-service', commit:'e1a4c63', msg:'security: rotate JWT secret', status:'ok', dur:'48s', who:'lethanhphuc', time:'1h ago' },
+  { num:'#79', app:'payment-svc', commit:'8d2f1b9', msg:'feat: add stripe webhook verify', status:'ok', dur:'1m 02s', who:'lethanhphuc', time:'3h ago' },
+  { num:'#78', app:'search-engine', commit:'4a7c9e2', msg:'perf: elasticsearch query optimize', status:'ok', dur:'2m 11s', who:'lethanhphuc', time:'6h ago' },
+  { num:'#77', app:'cdn-proxy', commit:'b5e3d1f', msg:'fix: cache invalidation bug', status:'ok', dur:'38s', who:'lethanhphuc', time:'8h ago' },
+  { num:'#76', app:'analytics-api', commit:'9f1a8c4', msg:'feat: add realtime dashboard API', status:'ok', dur:'1m 48s', who:'lethanhphuc', time:'12h ago' },
+  { num:'#75', app:'webhook-svc', commit:'3c6b2e8', msg:'feat: add retry with backoff', status:'ok', dur:'45s', who:'lethanhphuc', time:'1d ago' },
+];
+
+const logMessages = [
+  {l:'info', m:'Server listening on <span class="val">port 3000</span>'},
+  {l:'ok',   m:'Connected to <span class="url">postgresql://db.internal:5432</span>'},
+  {l:'ok',   m:'Redis cache connected · TTL <span class="val">3600s</span>'},
+  {l:'info', m:'<span class="cmd">GET</span> /health → <span class="val">200</span> (2ms)'},
+  {l:'info', m:'<span class="cmd">POST</span> /api/auth/login → <span class="val">200</span> (48ms)'},
+  {l:'info', m:'<span class="cmd">GET</span> /api/users → <span class="val">200</span> (12ms)'},
+  {l:'warn', m:'Rate limit approaching: <span class="val">890/1000</span> req/min from 42.198.x.x'},
+  {l:'info', m:'<span class="cmd">POST</span> /api/orders → <span class="val">201</span> (89ms)'},
+  {l:'error',m:'<span class="err">TimeoutError</span>: upstream service /payment took >5000ms'},
+  {l:'warn', m:'Retrying upstream... attempt <span class="val">2/3</span>'},
+  {l:'ok',   m:'Retry succeeded · <span class="cmd">POST</span> /payment → <span class="val">200</span> (212ms)'},
+  {l:'info', m:'<span class="cmd">GET</span> /api/products?page=1&limit=20 → <span class="val">200</span> (18ms)'},
+  {l:'debug',m:'Cache HIT for key <span class="val">user:profile:8821</span>'},
+  {l:'info', m:'Deploy hook received from GitHub · branch <span class="val">main</span> · commit <span class="val">a3f7c92</span>'},
+  {l:'ok',   m:'Health check PASS · <span class="url">/health</span> → <span class="val">200</span>'},
+  {l:'info', m:'<span class="cmd">DELETE</span> /api/sessions/:id → <span class="val">204</span> (5ms)'},
+  {l:'warn', m:'Memory usage at <span class="val">78%</span> · consider scaling up'},
+  {l:'info', m:'<span class="cmd">GET</span> /api/analytics/realtime → <span class="val">200</span> (34ms)'},
+  {l:'ok',   m:'SSL cert auto-renewed · <span class="val">*.stackforge.io</span> valid for 90d'},
+  {l:'error',m:'<span class="err">ECONNREFUSED</span>: notification-svc:4000 · marking as unhealthy'},
+];
+
+// ── TRAFFIC CHART ──
+function buildTrafficChart() {
+  const chart = document.getElementById('trafficChart');
+  if (!chart) return;
+  const vals = [20,25,18,22,35,45,52,38,30,42,60,78,72,65,80,75,82,90,85,70,68,75,80,88];
+  chart.innerHTML = vals.map((v, i) => `
+    <div class="chart-bar-wrap">
+      <div class="chart-bar" title="${v*50} req/s"
+        style="height:${v}%;background:linear-gradient(0deg,rgba(0,229,255,.4),rgba(0,255,157,.6));"></div>
+      </div>
+  `).join('');
+}
+
+// ── FULL APPS TABLE ──
+function buildFullAppsTable() {
+  const tbody = document.getElementById('full-apps-table');
+  if (!tbody) return;
+  const statusMap = {
+    running: '<span class="status-pill sp-running"><span class="sp-dot"></span>running</span>',
+    building: '<span class="status-pill sp-building"><span class="sp-dot"></span>building</span>',
+    stopped: '<span class="status-pill sp-stopped">stopped</span>',
+    error: '<span class="status-pill sp-error"><span class="sp-dot" style="animation:none"></span>crash</span>',
+  };
+  const tagMap = { node:'tag-node', python:'tag-python', go:'tag-go', docker:'tag-docker', ruby:'tag-ruby' };
+  tbody.innerHTML = apps.map(a => `
+    <tr>
+      <td><div class="app-name-cell"><div class="app-icon" style="background:rgba(0,229,255,.08);">⬡</div>
+        <div><div style="font-weight:600;color:#fff;font-size:.8rem;">${a.name}</div>
+        <a class="app-url" href="#">${a.url}</a></div></div></td>
+      <td>${statusMap[a.status] || ''}</td>
+      <td><span class="tag ${tagMap[a.tag]||''}">${a.runtime}</span></td>
+      <td><span class="region-badge">${a.region}</span></td>
+      <td style="font-family:var(--mono);font-size:.72rem;color:var(--dim);">${a.instances || '—'}</td>
+      <td><div class="resource-bar-wrap"><div style="font-family:var(--mono);font-size:.62rem;color:var(--dim);margin-bottom:3px;">${a.cpu}%</div><div class="resource-bar-bg"><div class="resource-bar-fill" style="width:${a.cpu}%;background:${a.cpu>70?'var(--warn)':'var(--accent)'};"></div></div></div></td>
+      <td><div class="resource-bar-wrap"><div style="font-family:var(--mono);font-size:.62rem;color:var(--dim);margin-bottom:3px;">${a.mem}</div><div class="resource-bar-bg"><div class="resource-bar-fill" style="width:${a.memPct}%;background:var(--accent2);"></div></div></div></td>
+      <td style="font-family:var(--mono);font-size:.7rem;color:var(--dim);">${a.uptime}</td>
+      <td>
+        <button class="btn btn-ghost" style="padding:3px 9px;font-size:.65rem;" onclick="showToast('info','Opening','Opening ${a.name} logs...')">logs</button>
+        <button class="btn btn-ghost" style="padding:3px 9px;font-size:.65rem;" onclick="showToast('ok','Restarted','${a.name} restart triggered.')">restart</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ── BUILD LIST ──
+function buildDeployList() {
+  const el = document.getElementById('build-list');
+  if (!el) return;
+  const iconMap = { ok:'bi-ok', err:'bi-err', running:'bi-run' };
+  const iconChar = { ok:'✓', err:'✕', running:'◉' };
+  el.innerHTML = builds.map(b => `
+    <div class="build-item">
+      <div class="build-icon ${iconMap[b.status]}">${iconChar[b.status]}</div>
+      <div class="build-info">
+        <div class="build-commit"><span style="color:var(--dim);">${b.app}</span> — ${b.msg} <span style="color:var(--accent);font-family:var(--mono);font-size:.68rem;">#${b.commit}</span></div>
+        <div class="build-meta">${b.num} · ${b.time} · by ${b.who}</div>
+      </div>
+      <div class="build-dur">${b.dur}</div>
+      <button class="btn btn-ghost" style="padding:3px 9px;font-size:.65rem;" onclick="showToast('info','Build ${b.num}','Viewing build logs...')">logs</button>
+    </div>
+  `).join('');
+}
+
+// ── LOGS ──
+let logInterval = null;
+let logRunning = false;
+let logLineCount = 0;
+
+function startLogs() {
+  const out = document.getElementById('log-output');
+  if (!out || logRunning) return;
+  logRunning = true;
+  let i = 0;
+  const addLine = () => {
+    if (!logRunning) return;
+    const msg = logMessages[i % logMessages.length];
+    const now = new Date();
+    const t = [now.getHours(),now.getMinutes(),now.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');
+    const line = document.createElement('div');
+    line.className = 'log-line';
+    line.innerHTML = `<span class="log-time">${t}</span><span class="log-level ll-${msg.l}">${msg.l.toUpperCase()}</span><span class="log-msg">${msg.m}</span>`;
+    out.appendChild(line);
+    out.scrollTop = out.scrollHeight;
+    if (out.children.length > 200) out.removeChild(out.firstChild);
+    i++;
+    logLineCount++;
+    logInterval = setTimeout(addLine, 400 + Math.random() * 800);
+  };
+  addLine();
+}
+
+function stopLogs() {
+  logRunning = false;
+  clearTimeout(logInterval);
+}
+
+function toggleLogs() {
+  const btn = document.getElementById('log-toggle');
+  if (logRunning) { stopLogs(); btn.textContent = '▶ Resume'; }
+  else { startLogs(); btn.textContent = '⏸ Pause'; }
+}
+
+function clearLogs() {
+  const out = document.getElementById('log-output');
+  if (out) out.innerHTML = '';
+}
+
+function filterLogs(level) {
+  const lines = document.querySelectorAll('.log-line');
+  lines.forEach(l => {
+    if (level === 'all') { l.style.display = ''; return; }
+    const ll = l.querySelector('.log-level');
+    l.style.display = ll && ll.textContent.toLowerCase() === level ? '' : 'none';
+  });
+}
+
+// ── VIEWS ──
+const views = ['dashboard','apps','deploys','logs','envs','domains','scaling'];
+const viewTitles = { dashboard:'Overview', apps:'Applications', deploys:'Deployments', logs:'Logs', envs:'Environments', domains:'Domains & SSL', scaling:'Auto Scaling' };
+
+function switchView(id) {
+  views.forEach(v => {
+    const el = document.getElementById('view-' + v);
+    if (el) el.style.display = v === id ? '' : 'none';
+  });
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + id + "'")) n.classList.add('active');
+  });
+  document.getElementById('topbar-current').textContent = viewTitles[id] || id;
+
+  if (id === 'logs') { buildFullAppsTable(); startLogs(); }
+  else { stopLogs(); }
+  if (id === 'apps') buildFullAppsTable();
+  if (id === 'deploys') buildDeployList();
+}
+
+// ── MODAL ──
+function openModal() { document.getElementById('modal').classList.add('open'); }
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+document.getElementById('modal').addEventListener('click', e => { if(e.target.id==='modal') closeModal(); });
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+
+function triggerDeploy() {
+  const name = document.getElementById('app-name-input').value.trim() || 'my-app';
+  closeModal();
+  showToast('ok', 'Deploying!', `${name} build started. View progress in Deployments.`);
+}
+
+// ── TABS ──
+function switchTab(tab, panelId) {
+  tab.closest('.modal-body').querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.closest('.modal-body').querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  tab.classList.add('active');
+  document.getElementById(panelId).classList.add('active');
+}
+
+function selectRuntime(el) {
+  el.closest('.runtime-grid').querySelectorAll('.runtime-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// ── TOAST ──
+let toastQ = 0;
+function showToast(type, title, msg) {
+  const container = document.getElementById('toasts');
+  const icons = { ok:'✅', info:'💡', warn:'⚠️', error:'❌' };
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `<span class="toast-icon">${icons[type]||'💡'}</span><div class="toast-body"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div>`;
+  container.appendChild(toast);
+  requestAnimationFrame(() => { requestAnimationFrame(() => toast.classList.add('show')); });
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 400);
+  }, 3500);
+}
+
+// ── SECRET TOGGLE ──
+function toggleSecret(id, val) {
+  const el = document.getElementById(id);
+  const btn = el.nextElementSibling.nextElementSibling;
+  if (el.classList.contains('secret')) {
+    el.textContent = val;
+    el.classList.remove('secret');
+    btn.textContent = 'hide';
+  } else {
+    el.textContent = '••••••••••••••••••••••••';
+    el.classList.add('secret');
+    btn.textContent = 'show';
+  }
+}
+
+// ── INIT ──
+buildTrafficChart();
+
+// Welcome toast
+setTimeout(() => showToast('ok', 'StackForge PaaS', 'All 10 healthy apps running. 2 alerts pending.'), 800);
+
+// Simulate build progress in pipeline
+let pipelineIdx = 3;
+const pipelineDots = document.querySelectorAll('.ps-dot');
+const pipelineLabels = ['Clone','Install','Test','Build','Push','Deploy'];
+const pipelineTimes = ['2s','34s','48s','—','—','—'];
+
+function advancePipeline() {
+  if (pipelineIdx >= pipelineDots.length) return;
+  setTimeout(() => {
+    pipelineDots[pipelineIdx].className = 'ps-dot ps-done';
+    pipelineDots[pipelineIdx].textContent = '✓';
+    // Update time
+    const times = ['2s','34s','48s','1m12s','18s','6s'];
+    pipelineIdx++;
+    if (pipelineIdx < pipelineDots.length) {
+      pipelineDots[pipelineIdx].className = 'ps-dot ps-active';
+      pipelineDots[pipelineIdx].textContent = '◉';
+      setTimeout(advancePipeline, 4000);
+    } else {
+      showToast('ok', 'Deploy complete!', 'data-pipeline v1.4.2 is live.');
+    }
+  }, 1200);
+}
+setTimeout(advancePipeline, 4000);
+
+</script>
+</body>
+</html>
