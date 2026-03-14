@@ -59,15 +59,6 @@
 - **Sparklines**: Biểu đồ nhỏ trong metric cards
 - **Custom scrollbar**: Thanh cuộn được thiết kế đồng bộ
 
-## 📂 **Cấu trúc thư mục**
-
-```
-PaaS/
-├── index.html          # File chính (toàn bộ giao diện + logic)
-├── README.md           # Tài liệu dự án (tiếng Việt)
-└── assets/            # (tùy chọn) Hình ảnh, icons
-    └── preview.png
-```
 
 ## 🚀 **Hướng dẫn cài đặt & chạy**
 
