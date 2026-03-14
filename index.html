@@ -729,6 +729,31 @@ body::after {
 .tag-docker{background:rgba(255,171,0,.06);color:var(--warn);border-color:rgba(255,171,0,.2);}
 .tag-ruby{background:rgba(255,61,90,.06);color:var(--danger);border-color:rgba(255,61,90,.2);}
 
+/* ── ADDITIONAL STYLES FOR NEW VIEWS ── */
+.alert-critical {
+  border-left:3px solid var(--danger) !important;
+  background:rgba(255,61,90,.05) !important;
+}
+.alert-warning {
+  border-left:3px solid var(--warn) !important;
+}
+.alert-info {
+  border-left:3px solid var(--accent) !important;
+}
+.uptime-bar {
+  flex:1;
+  height:60px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+}
+.uptime-bar-inner {
+  border-radius:2px 2px 0 0;
+  transition:height 0.3s;
+}
+.uptime-up { background:var(--accent2); }
+.uptime-degraded { background:var(--warn); }
+.uptime-down { background:var(--danger); }
 </style>
 </head>
 <body>
@@ -740,7 +765,7 @@ body::after {
     <div>
       <div class="logo-text">Stack<span>Forge</span></div>
     </div>
-    <div class="sidebar-version">v2.6</div>
+    <div class="sidebar-version">v3.0</div>
   </div>
 
   <nav class="sidebar-nav">
@@ -776,30 +801,31 @@ body::after {
     </div>
     <div class="nav-section">
       <div class="nav-section-label">Addons</div>
-      <div class="nav-item">
-        <span class="nav-icon">⬢</span> Databases
+      <div class="nav-item" onclick="switchView('redis')">
+        <span class="nav-icon">⚡</span> Redis Cache
+        <span class="nav-badge green">active</span>
       </div>
-      <div class="nav-item">
-        <span class="nav-icon">◎</span> Redis Cache
+      <div class="nav-item" onclick="switchView('queue')">
+        <span class="nav-icon">📨</span> Message Queue
+        <span class="nav-badge blue">12</span>
       </div>
-      <div class="nav-item">
-        <span class="nav-icon">↭</span> Message Queue
-      </div>
-      <div class="nav-item">
-        <span class="nav-icon">◐</span> Object Storage
+      <div class="nav-item" onclick="switchView('storage')">
+        <span class="nav-icon">📦</span> Object Storage
+        <span class="nav-badge">2.4TB</span>
       </div>
     </div>
     <div class="nav-section">
       <div class="nav-section-label">Monitoring</div>
-      <div class="nav-item">
-        <span class="nav-icon">◑</span> Metrics
+      <div class="nav-item" onclick="switchView('metrics')">
+        <span class="nav-icon">📊</span> Metrics
       </div>
-      <div class="nav-item">
+      <div class="nav-item" onclick="switchView('alerts')">
         <span class="nav-icon">⚠</span> Alerts
         <span class="nav-badge">2</span>
       </div>
-      <div class="nav-item">
+      <div class="nav-item" onclick="switchView('uptime')">
         <span class="nav-icon">⬤</span> Uptime
+        <span class="nav-badge green">99.9%</span>
       </div>
     </div>
   </nav>
@@ -809,7 +835,7 @@ body::after {
       <div class="user-avatar">LP</div>
       <div>
         <div class="user-name">Le Thanh Phuc</div>
-        <div class="user-role">admin · pro plan</div>
+        <div class="user-role">admin · enterprise plan</div>
       </div>
     </div>
   </div>
@@ -1441,140 +1467,588 @@ body::after {
       </div>
     </div>
 
+    <!-- ═══ REDIS CACHE VIEW ═══ -->
+    <div id="view-redis" style="display:none;">
+      <div class="overview-header">
+        <h1>Redis Cache</h1>
+        <p>Managed Redis · Version 7.2 · <span class="hl">production-cluster-sg</span></p>
+      </div>
+
+      <div class="metrics-row">
+        <div class="metric-card mc-green">
+          <div class="metric-label">Memory Usage</div>
+          <div class="metric-value">2.4<span class="unit">GB</span></div>
+          <div class="metric-sub"><span class="up">↓ 12%</span> vs yesterday</div>
+          <svg class="metric-sparkline" viewBox="0 0 80 40">
+            <polyline points="0,30 10,25 20,28 30,18 40,22 50,12 60,16 70,8 80,14" fill="none" stroke="#00ff9d" stroke-width="1.5" opacity=".8"/>
+          </svg>
+        </div>
+        <div class="metric-card mc-cyan">
+          <div class="metric-label">Operations/sec</div>
+          <div class="metric-value">8.4<span class="unit">k</span></div>
+          <div class="metric-sub"><span class="up">↑ 8%</span> peak at 14:00</div>
+          <svg class="metric-sparkline" viewBox="0 0 80 40">
+            <polyline points="0,35 15,28 25,32 35,20 45,24 55,15 65,18 80,10" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity=".8"/>
+          </svg>
+        </div>
+        <div class="metric-card mc-violet">
+          <div class="metric-label">Hit Rate</div>
+          <div class="metric-value">94<span class="unit">%</span></div>
+          <div class="metric-sub"><span class="up">↑ 2%</span> cache efficiency</div>
+          <svg class="metric-sparkline" viewBox="0 0 80 40">
+            <polyline points="0,15 12,20 22,12 32,18 42,8 52,14 62,10 72,16 80,8" fill="none" stroke="#a78bfa" stroke-width="1.5" opacity=".8"/>
+          </svg>
+        </div>
+        <div class="metric-card mc-warn">
+          <div class="metric-label">Evictions</div>
+          <div class="metric-value">0<span class="unit">/sec</span></div>
+          <div class="metric-sub"><span class="up">no evictions</span></div>
+          <svg class="metric-sparkline" viewBox="0 0 80 40">
+            <polyline points="0,20 12,18 22,22 32,16 42,28 52,20 62,24 72,18 80,22" fill="none" stroke="#ffab00" stroke-width="1.5" opacity=".8"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Databases</div>
+            <div class="panel-actions">
+              <button class="btn btn-primary" style="padding:5px 12px;" onclick="showToast('info','Creating','New Redis database creation started.')">⊕ New DB</button>
+            </div>
+          </div>
+          <div class="panel-body" style="padding:0;">
+            <table class="apps-table">
+              <thead>
+                <tr><th>Name</th><th>Keys</th><th>Memory</th><th>Avg TTL</th><th>Status</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><div class="app-name-cell"><div class="app-icon" style="background:rgba(0,255,157,.1);">⚡</div>session-store</div></td><td>124k</td><td>1.2GB</td><td>3600s</td><td><span class="status-pill sp-running"><span class="sp-dot"></span>active</span></td></tr>
+                <tr><td><div class="app-name-cell"><div class="app-icon" style="background:rgba(0,229,255,.1);">⚡</div>api-cache</div></td><td>45k</td><td>890MB</td><td>300s</td><td><span class="status-pill sp-running"><span class="sp-dot"></span>active</span></td></tr>
+                <tr><td><div class="app-name-cell"><div class="app-icon" style="background:rgba(167,139,250,.1);">⚡</div>rate-limiter</div></td><td>8k</td><td>128MB</td><td>60s</td><td><span class="status-pill sp-running"><span class="sp-dot"></span>active</span></td></tr>
+                <tr><td><div class="app-name-cell"><div class="app-icon" style="background:rgba(255,61,90,.1);">⚡</div>job-queue</div></td><td>2.1k</td><td>45MB</td><td>—</td><td><span class="status-pill sp-error">backup</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">Connection Details</div></div>
+            <div class="panel-body">
+              <div style="font-family:var(--mono);font-size:.72rem;">
+                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(30,45,61,.5);">
+                  <span style="color:var(--dim);">Endpoint:</span>
+                  <span style="color:var(--accent);">redis://cache.internal:6379</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(30,45,61,.5);">
+                  <span style="color:var(--dim);">Password:</span>
+                  <span class="secret" id="redis-pass">••••••••••••••••</span>
+                  <button class="env-toggle" style="padding:2px 8px;" onclick="toggleSecret('redis-pass','redis-prod-9f8a7s6d5f4g3h2j')">show</button>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:6px 0;">
+                  <span style="color:var(--dim);">Maxmemory:</span>
+                  <span style="color:var(--text);">4GB</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">Commands</div></div>
+            <div class="panel-body" style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="showToast('info','Flushing','Flushing Redis cache...')">⚠ Flush all cache</button>
+              <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="showToast('ok','Config','Redis configuration updated.')">⚙ Advanced config</button>
+              <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="showToast('info','Metrics','Exporting Redis metrics.')">📊 Export metrics</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ MESSAGE QUEUE VIEW ═══ -->
+    <div id="view-queue" style="display:none;">
+      <div class="overview-header">
+        <h1>Message Queue</h1>
+        <p>RabbitMQ + Kafka clusters · <span class="hl">3 brokers · 12 queues</span></p>
+      </div>
+
+      <div class="tabs" style="margin-bottom:20px;">
+        <div class="tab active" onclick="switchMQTab(this,'rabbit')">RabbitMQ</div>
+        <div class="tab" onclick="switchMQTab(this,'kafka')">Kafka</div>
+      </div>
+
+      <div id="rabbit-panel">
+        <div class="metrics-row">
+          <div class="metric-card mc-cyan"><div class="metric-label">Queues</div><div class="metric-value">12</div><div class="metric-sub">4 with messages</div></div>
+          <div class="metric-card mc-green"><div class="metric-label">Messages</div><div class="metric-value">48.2<span class="unit">k</span></div><div class="metric-sub">ready + unacked</div></div>
+          <div class="metric-card mc-warn"><div class="metric-label">Publish rate</div><div class="metric-value">1.4<span class="unit">k/s</span></div><div class="metric-sub"><span class="up">↑ 12%</span></div></div>
+          <div class="metric-card mc-violet"><div class="metric-label">Consume rate</div><div class="metric-value">1.2<span class="unit">k/s</span></div><div class="metric-sub"><span class="up">↑ 8%</span></div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">Queues (RabbitMQ)</div></div>
+          <div class="panel-body" style="padding:0;">
+            <table class="apps-table">
+              <thead><tr><th>Queue</th><th>Type</th><th>Ready</th><th>Unacked</th><th>Total</th><th>Rate</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td><div class="app-name-cell"><div class="app-icon" style="background:rgba(0,229,255,.1);">📦</div>order.process</div></td><td>quorum</td><td>2.4k</td><td>128</td><td>2.5k</td><td>120/s</td><td><span class="status-pill sp-running"><span class="sp-dot"></span>running</span></td></tr>
+                <tr><td><div class="app-name-cell"><div class="app-icon" style="background:rgba(0,255,157,.1);">📦</div>email.send</div></td><td>classic</td><td>15.2k</td><td>342</td><td>15.5k</td><td>450/s</td><td><span class="status-pill sp-running"><span class="sp-dot"></span>running</span></td></tr>
+                <tr><td><div class="app-name-cell"><div class="app-icon" style="background:rgba(167,139,250,.1);">📦</div>payment.confirm</div></td><td>quorum</td><td>890</td><td>12</td><td>902</td><td>30/s</td><td><span class="status-pill sp-running"><span class="sp-dot"></span>running</span></td></tr>
+                <tr><td><div class="app-name-cell"><div class="app-icon" style="background:rgba(255,61,90,.1);">📦</div>dead.letter</div></td><td>classic</td><td>8.3k</td><td>0</td><td>8.3k</td><td>0/s</td><td><span class="status-pill sp-error">DLQ</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="kafka-panel" style="display:none;">
+        <div class="metrics-row">
+          <div class="metric-card mc-cyan"><div class="metric-label">Topics</div><div class="metric-value">8</div><div class="metric-sub">3 partitions each</div></div>
+          <div class="metric-card mc-green"><div class="metric-label">Messages</div><div class="metric-value">1.2<span class="unit">M</span></div><div class="metric-sub">last 24h</div></div>
+          <div class="metric-card mc-warn"><div class="metric-label">Brokers</div><div class="metric-value">3/3</div><div class="metric-sub">ISR: 3</div></div>
+          <div class="metric-card mc-violet"><div class="metric-label">Consumer lag</div><div class="metric-value">842</div><div class="metric-sub"><span class="dn">↑ 128</span> from 1h ago</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">Topics</div></div>
+          <div class="panel-body" style="padding:0;">
+            <table class="apps-table">
+              <thead><tr><th>Topic</th><th>Partitions</th><th>Messages</th><th>Size</th><th>Retention</th><th>Consumer lag</th></tr></thead>
+              <tbody>
+                <tr><td><div class="app-name-cell"><div class="app-icon" style="background:rgba(0,229,255,.1);">📤</div>logs.app</div></td><td>6</td><td>842k</td><td>2.1GB</td><td>7d</td><td>0</td></tr>
+                <tr><td><div class="app-name-cell"><div class="app-icon" style="background:rgba(0,255,157,.1);">📤</div>events.user</div></td><td>3</td><td>324k</td><td>890MB</td><td>3d</td><td>124</td></tr>
+                <tr><td><div class="app-name-cell"><div class="app-icon" style="background:rgba(167,139,250,.1);">📤</div>metrics.system</div></td><td>2</td><td>1.2M</td><td>3.4GB</td><td>1d</td><td>718</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ OBJECT STORAGE VIEW ═══ -->
+    <div id="view-storage" style="display:none;">
+      <div class="overview-header">
+        <h1>Object Storage</h1>
+        <p>S3-compatible · <span class="hl">12 buckets · 2.4 TB total</span></p>
+      </div>
+
+      <div class="metrics-row">
+        <div class="metric-card mc-cyan"><div class="metric-label">Buckets</div><div class="metric-value">12</div><div class="metric-sub">+2 this month</div></div>
+        <div class="metric-card mc-green"><div class="metric-label">Objects</div><div class="metric-value">248.3<span class="unit">k</span></div><div class="metric-sub">avg size 9.8MB</div></div>
+        <div class="metric-card mc-warn"><div class="metric-label">Storage used</div><div class="metric-value">2.4<span class="unit">TB</span></div><div class="metric-sub">of 5TB plan</div></div>
+        <div class="metric-card mc-violet"><div class="metric-label">Bandwidth</div><div class="metric-value">124<span class="unit">GB</span></div><div class="metric-sub">today (outbound)</div></div>
+      </div>
+
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Buckets</div>
+            <div class="panel-actions">
+              <button class="btn btn-primary" style="padding:5px 12px;" onclick="showToast('info','Creating','New bucket creation started.')">⊕ New bucket</button>
+            </div>
+          </div>
+          <div class="panel-body" style="padding:0;">
+            <table class="apps-table">
+              <thead><tr><th>Bucket</th><th>Region</th><th>Objects</th><th>Size</th><th>Access</th><th>Versioning</th></tr></thead>
+              <tbody>
+                <tr><td><div class="app-name-cell"><div class="app-icon" style="background:rgba(0,229,255,.1);">📦</div>assets.prod</div></td><td>SG</td><td>124k</td><td>1.2TB</td><td><span class="tag tag-node">private</span></td><td>enabled</td></tr>
+                <tr><td><div class="app-name-cell"><div class="app-icon" style="background:rgba(0,255,157,.1);">📦</div>backups.db</div></td><td>SG</td><td>2.4k</td><td>890GB</td><td><span class="tag tag-node">private</span></td><td>enabled</td></tr>
+                <tr><td><div class="app-name-cell"><div class="app-icon" style="background:rgba(167,139,250,.1);">📦</div>static.web</div></td><td>CF</td><td>45.2k</td><td>212GB</td><td><span class="tag tag-python">public-read</span></td><td>suspended</td></tr>
+                <tr><td><div class="app-name-cell"><div class="app-icon" style="background:rgba(255,171,0,.1);">📦</div>logs.archive</div></td><td>SG</td><td>76.7k</td><td>98GB</td><td><span class="tag tag-docker">private</span></td><td>enabled</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">Usage by region</div></div>
+            <div class="panel-body">
+              <div class="chart-area" style="height:80px;" id="storageChart"></div>
+              <div style="margin-top:12px;">
+                <div style="display:flex;justify-content:space-between;"><span style="color:var(--dim);">Singapore (SG)</span><span style="color:var(--accent);">1.8 TB</span></div>
+                <div style="display:flex;justify-content:space-between;"><span style="color:var(--dim);">Frankfurt (EU)</span><span style="color:var(--accent2);">0.4 TB</span></div>
+                <div style="display:flex;justify-content:space-between;"><span style="color:var(--dim);">Virginia (US)</span><span style="color:var(--violet);">0.2 TB</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">Access keys</div></div>
+            <div class="panel-body">
+              <div class="env-item"><span class="env-key">Access Key ID</span><span class="env-val secret" id="s3-key">AKIA••••••••••••</span><button class="env-toggle" onclick="toggleSecret('s3-key','AKIAIOSFODNN7EXAMPLE')">show</button></div>
+              <div class="env-item"><span class="env-key">Secret Key</span><span class="env-val secret" id="s3-secret">••••••••••••••••</span><button class="env-toggle" onclick="toggleSecret('s3-secret','wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY')">show</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ METRICS VIEW ═══ -->
+    <div id="view-metrics" style="display:none;">
+      <div class="overview-header">
+        <h1>System Metrics</h1>
+        <p>Last 24h · Cluster: <span class="hl">production</span> · Aggregated from all nodes</p>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:20px;">
+        <button class="btn btn-primary" style="padding:4px 12px;" onclick="showToast('info','Metrics','Showing last 1h')">1h</button>
+        <button class="btn btn-ghost" style="padding:4px 12px;">6h</button>
+        <button class="btn btn-ghost" style="padding:4px 12px;">24h</button>
+        <button class="btn btn-ghost" style="padding:4px 12px;">7d</button>
+        <button class="btn btn-ghost" style="padding:4px 12px;">30d</button>
+        <div style="flex:1;"></div>
+        <button class="btn btn-ghost" onclick="showToast('info','Exporting','Exporting metrics as CSV.')">📥 Export</button>
+      </div>
+
+      <div class="three-col">
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">CPU Usage (avg)</div></div>
+          <div class="panel-body" style="height:160px;">
+            <div class="chart-area" id="cpuChart"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">Memory Usage</div></div>
+          <div class="panel-body" style="height:160px;">
+            <div class="chart-area" id="memoryChart"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">Network I/O</div></div>
+          <div class="panel-body" style="height:160px;">
+            <div class="chart-area" id="networkChart"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:16px;">
+        <div class="panel-header"><div class="panel-title">Per-node Metrics</div></div>
+        <div class="panel-body" style="padding:0;">
+          <table class="apps-table">
+            <thead><tr><th>Node</th><th>CPU</th><th>Memory</th><th>Disk</th><th>Network in</th><th>Network out</th><th>Load 1m</th></tr></thead>
+            <tbody>
+              <tr><td>node-01.sg</td><td><div class="resource-bar-wrap">34%<div class="resource-bar-bg"><div class="resource-bar-fill" style="width:34%;background:var(--accent);"></div></div></div></td><td>42%</td><td>56%</td><td>124 Mbps</td><td>342 Mbps</td><td>2.4</td></tr>
+              <tr><td>node-02.sg</td><td><div class="resource-bar-wrap">72%<div class="resource-bar-bg"><div class="resource-bar-fill" style="width:72%;background:var(--warn);"></div></div></div></td><td>68%</td><td>45%</td><td>342 Mbps</td><td>1.2 Gbps</td><td>5.8</td></tr>
+              <tr><td>node-03.us</td><td><div class="resource-bar-wrap">12%<div class="resource-bar-bg"><div class="resource-bar-fill" style="width:12%;background:var(--accent);"></div></div></div></td><td>22%</td><td>78%</td><td>56 Mbps</td><td>89 Mbps</td><td>1.2</td></tr>
+              <tr><td>node-04.eu</td><td><div class="resource-bar-wrap">28%<div class="resource-bar-bg"><div class="resource-bar-fill" style="width:28%;background:var(--accent);"></div></div></div></td><td>31%</td><td>34%</td><td>89 Mbps</td><td>124 Mbps</td><td>1.8</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ALERTS VIEW ═══ -->
+    <div id="view-alerts" style="display:none;">
+      <div class="overview-header">
+        <h1>Alerts</h1>
+        <p><span class="hl">2 active</span> · 8 acknowledged · 12 resolved in 24h</p>
+      </div>
+
+      <div class="metrics-row" style="margin-bottom:20px;">
+        <div class="metric-card mc-warn" style="cursor:pointer;" onclick="filterAlerts('critical')">
+          <div class="metric-label">Critical</div>
+          <div class="metric-value">1<span class="unit"></span></div>
+          <div class="metric-sub">notification-svc down</div>
+        </div>
+        <div class="metric-card mc-warn" style="cursor:pointer;" onclick="filterAlerts('warning')">
+          <div class="metric-label">Warning</div>
+          <div class="metric-value">3<span class="unit"></span></div>
+          <div class="metric-sub">CPU > 70% on 2 nodes</div>
+        </div>
+        <div class="metric-card mc-green" style="cursor:pointer;" onclick="filterAlerts('info')">
+          <div class="metric-label">Info</div>
+          <div class="metric-value">4<span class="unit"></span></div>
+          <div class="metric-sub">Certificate expires in 8d</div>
+        </div>
+        <div class="metric-card mc-violet">
+          <div class="metric-label">Silenced</div>
+          <div class="metric-value">2<span class="unit"></span></div>
+          <div class="metric-sub">maintenance mode</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Active Alerts</div>
+          <div class="panel-actions">
+            <button class="btn btn-ghost" style="padding:4px 10px;" onclick="showToast('ok','Acknowledged','All alerts acknowledged.')">✓ Acknowledge all</button>
+          </div>
+        </div>
+        <div class="panel-body" style="padding:0;">
+          <div class="activity-list" id="alerts-list">
+            <div class="activity-item alert-critical">
+              <div class="activity-icon ai-error">⚠</div>
+              <div class="activity-body">
+                <div class="activity-text"><strong>notification-svc</strong> is down — CrashLoopBackOff (restarting)</div>
+                <div class="activity-time">14m ago · severity: critical</div>
+              </div>
+              <button class="btn btn-ghost" style="padding:3px 9px;" onclick="acknowledgeAlert(this)">Acknowledge</button>
+            </div>
+            <div class="activity-item alert-warning">
+              <div class="activity-icon ai-error">⚠</div>
+              <div class="activity-body">
+                <div class="activity-text"><strong>data-pipeline</strong> CPU > 80% for 15m (current: 89%)</div>
+                <div class="activity-time">38m ago · severity: warning</div>
+              </div>
+              <button class="btn btn-ghost" style="padding:3px 9px;" onclick="acknowledgeAlert(this)">Acknowledge</button>
+            </div>
+            <div class="activity-item alert-info">
+              <div class="activity-icon ai-error">⚠</div>
+              <div class="activity-body">
+                <div class="activity-text"><strong>SSL certificate</strong> for *.legacy.stackforge.io expires in 8 days</div>
+                <div class="activity-time">2h ago · severity: info</div>
+              </div>
+              <button class="btn btn-ghost" style="padding:3px 9px;" onclick="acknowledgeAlert(this)">Acknowledge</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:16px;">
+        <div class="panel-header">
+          <div class="panel-title">Alert Rules</div>
+          <div class="panel-actions">
+            <button class="btn btn-primary" style="padding:4px 12px;" onclick="showToast('info','Rule','New alert rule creation started.')">+ Add rule</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="env-item" style="cursor:pointer;" onclick="editRule('High CPU')">
+            <span class="env-key">⚠ High CPU</span>
+            <span class="env-val">CPU > 80% for 10m → critical</span>
+            <span class="env-type et-public">enabled</span>
+          </div>
+          <div class="env-item" style="cursor:pointer;" onclick="editRule('Memory leak')">
+            <span class="env-key">⚠ Memory leak</span>
+            <span class="env-val">Memory > 90% for 5m → critical</span>
+            <span class="env-type et-public">enabled</span>
+          </div>
+          <div class="env-item" style="cursor:pointer;" onclick="editRule('Service down')">
+            <span class="env-key">⚠ Service down</span>
+            <span class="env-val">5xx errors > 10% for 2m → critical</span>
+            <span class="env-type et-public">enabled</span>
+          </div>
+          <div class="env-item" style="cursor:pointer;" onclick="editRule('SSL expiry')">
+            <span class="env-key">🔒 SSL expiry</span>
+            <span class="env-val">Certificate expires < 14d → info</span>
+            <span class="env-type et-public">enabled</span>
+          </div>
+          <div class="env-item" style="opacity:0.6;" onclick="editRule('Disk full')">
+            <span class="env-key">💾 Disk full</span>
+            <span class="env-val">Disk usage > 85% for 1h → warning</span>
+            <span class="env-type et-secret">disabled</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ UPTIME VIEW ═══ -->
+    <div id="view-uptime" style="display:none;">
+      <div class="overview-header">
+        <h1>Uptime Monitoring</h1>
+        <p>Global checks every 30s · <span class="hl">99.94%</span> average uptime (30d)</p>
+      </div>
+
+      <div class="metrics-row">
+        <div class="metric-card mc-green">
+          <div class="metric-label">api.stackforge.io</div>
+          <div class="metric-value">99.98<span class="unit">%</span></div>
+          <div class="metric-sub">last 30d · 12m downtime</div>
+        </div>
+        <div class="metric-card mc-cyan">
+          <div class="metric-label">app.stackforge.io</div>
+          <div class="metric-value">99.95<span class="unit">%</span></div>
+          <div class="metric-sub">last 30d · 21m downtime</div>
+        </div>
+        <div class="metric-card mc-warn">
+          <div class="metric-label">auth.stackforge.io</div>
+          <div class="metric-value">99.88<span class="unit">%</span></div>
+          <div class="metric-sub">last 30d · 52m downtime</div>
+        </div>
+        <div class="metric-card mc-violet">
+          <div class="metric-label">Overall</div>
+          <div class="metric-value">99.94<span class="unit">%</span></div>
+          <div class="metric-sub">across 12 endpoints</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Uptime Timeline (last 24h)</div>
+          <div class="panel-actions">
+            <select class="form-select" style="width:140px;padding:4px 24px 4px 8px;" onchange="changeUptimeEndpoint(this.value)">
+              <option>api.stackforge.io</option>
+              <option>app.stackforge.io</option>
+              <option>auth.stackforge.io</option>
+              <option>worker.stackforge.io</option>
+            </select>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div style="display:flex;gap:2px;height:60px;align-items:flex-end;margin-bottom:10px;" id="uptimeBars"></div>
+          <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:.6rem;color:var(--faint);">
+            <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>now</span>
+          </div>
+          <div style="display:flex;gap:20px;margin-top:16px;">
+            <div><span style="color:var(--accent2);">⬤</span> Operational</div>
+            <div><span style="color:var(--warn);">⬤</span> Degraded</div>
+            <div><span style="color:var(--danger);">⬤</span> Outage</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="two-col" style="margin-top:16px;">
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">Response Time (ms)</div></div>
+          <div class="panel-body" style="height:160px;">
+            <div class="chart-area" id="responseChart"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">Status Page</div></div>
+          <div class="panel-body">
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div class="env-item"><span class="env-key">Public status URL</span><span class="env-val" style="color:var(--accent);">https://status.stackforge.io</span><button class="btn btn-ghost" style="padding:2px 8px;" onclick="copyToClipboard('https://status.stackforge.io')">Copy</button></div>
+              <div class="env-item"><span class="env-key">RSS feed</span><span class="env-val">/feed/incidents.xml</span></div>
+              <button class="btn btn-primary" style="width:100%;" onclick="showToast('ok','Published','Status page updated.')">📢 Update status page</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
-</div>
 
-<!-- DEPLOY MODAL -->
-<div class="modal-overlay" id="modal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="logo-mark" style="width:26px;height:26px;font-size:12px;">SF</div>
-      <h2>deploy new application</h2>
-      <button class="modal-close" onclick="closeModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="tabs">
-        <div class="tab active" onclick="switchTab(this,'tab-source')">Source</div>
-        <div class="tab" onclick="switchTab(this,'tab-runtime')">Runtime</div>
-        <div class="tab" onclick="switchTab(this,'tab-settings')">Settings</div>
+  <!-- DEPLOY MODAL -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="logo-mark" style="width:26px;height:26px;font-size:12px;">SF</div>
+        <h2>deploy new application</h2>
+        <button class="modal-close" onclick="closeModal()">✕</button>
       </div>
+      <div class="modal-body">
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab(this,'tab-source')">Source</div>
+          <div class="tab" onclick="switchTab(this,'tab-runtime')">Runtime</div>
+          <div class="tab" onclick="switchTab(this,'tab-settings')">Settings</div>
+        </div>
 
-      <div class="tab-panel active" id="tab-source">
-        <div class="form-group">
-          <label class="form-label">App Name</label>
-          <input class="form-input" placeholder="my-awesome-api" type="text" id="app-name-input"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Git Repository</label>
-          <input class="form-input" placeholder="https://github.com/user/repo" type="text"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Branch</label>
-          <div class="select-wrap">
-            <select class="form-select">
-              <option>main</option>
-              <option>develop</option>
-              <option>staging</option>
-            </select>
+        <div class="tab-panel active" id="tab-source">
+          <div class="form-group">
+            <label class="form-label">App Name</label>
+            <input class="form-input" placeholder="my-awesome-api" type="text" id="app-name-input"/>
           </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Deploy Region</label>
-          <div class="select-wrap">
-            <select class="form-select">
-              <option>ap-southeast-1 (Singapore)</option>
-              <option>us-east-1 (Virginia)</option>
-              <option>eu-west-1 (Ireland)</option>
-            </select>
+          <div class="form-group">
+            <label class="form-label">Git Repository</label>
+            <input class="form-input" placeholder="https://github.com/user/repo" type="text"/>
           </div>
-        </div>
-      </div>
-
-      <div class="tab-panel" id="tab-runtime">
-        <div class="form-group">
-          <label class="form-label">Select Runtime</label>
-          <div class="runtime-grid">
-            <div class="runtime-option selected" onclick="selectRuntime(this)">
-              <span class="runtime-icon">🟢</span>
-              <div class="runtime-name">Node.js</div>
-              <div class="runtime-ver">v20 LTS</div>
+          <div class="form-group">
+            <label class="form-label">Branch</label>
+            <div class="select-wrap">
+              <select class="form-select">
+                <option>main</option>
+                <option>develop</option>
+                <option>staging</option>
+              </select>
             </div>
-            <div class="runtime-option" onclick="selectRuntime(this)">
-              <span class="runtime-icon">🐍</span>
-              <div class="runtime-name">Python</div>
-              <div class="runtime-ver">3.12</div>
-            </div>
-            <div class="runtime-option" onclick="selectRuntime(this)">
-              <span class="runtime-icon">🦫</span>
-              <div class="runtime-name">Go</div>
-              <div class="runtime-ver">1.22</div>
-            </div>
-            <div class="runtime-option" onclick="selectRuntime(this)">
-              <span class="runtime-icon">🐳</span>
-              <div class="runtime-name">Docker</div>
-              <div class="runtime-ver">custom</div>
-            </div>
-            <div class="runtime-option" onclick="selectRuntime(this)">
-              <span class="runtime-icon">💎</span>
-              <div class="runtime-name">Ruby</div>
-              <div class="runtime-ver">3.3</div>
-            </div>
-            <div class="runtime-option" onclick="selectRuntime(this)">
-              <span class="runtime-icon">☕</span>
-              <div class="runtime-name">Java</div>
-              <div class="runtime-ver">21 LTS</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Deploy Region</label>
+            <div class="select-wrap">
+              <select class="form-select">
+                <option>ap-southeast-1 (Singapore)</option>
+                <option>us-east-1 (Virginia)</option>
+                <option>eu-west-1 (Ireland)</option>
+              </select>
             </div>
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Instance Size</label>
-          <div class="select-wrap">
-            <select class="form-select">
-              <option>Micro — 0.5 CPU / 512MB ($5/mo)</option>
-              <option selected>Standard — 1 CPU / 1GB ($15/mo)</option>
-              <option>Pro — 2 CPU / 2GB ($35/mo)</option>
-              <option>Performance — 4 CPU / 8GB ($89/mo)</option>
-            </select>
+
+        <div class="tab-panel" id="tab-runtime">
+          <div class="form-group">
+            <label class="form-label">Select Runtime</label>
+            <div class="runtime-grid">
+              <div class="runtime-option selected" onclick="selectRuntime(this)">
+                <span class="runtime-icon">🟢</span>
+                <div class="runtime-name">Node.js</div>
+                <div class="runtime-ver">v20 LTS</div>
+              </div>
+              <div class="runtime-option" onclick="selectRuntime(this)">
+                <span class="runtime-icon">🐍</span>
+                <div class="runtime-name">Python</div>
+                <div class="runtime-ver">3.12</div>
+              </div>
+              <div class="runtime-option" onclick="selectRuntime(this)">
+                <span class="runtime-icon">🦫</span>
+                <div class="runtime-name">Go</div>
+                <div class="runtime-ver">1.22</div>
+              </div>
+              <div class="runtime-option" onclick="selectRuntime(this)">
+                <span class="runtime-icon">🐳</span>
+                <div class="runtime-name">Docker</div>
+                <div class="runtime-ver">custom</div>
+              </div>
+              <div class="runtime-option" onclick="selectRuntime(this)">
+                <span class="runtime-icon">💎</span>
+                <div class="runtime-name">Ruby</div>
+                <div class="runtime-ver">3.3</div>
+              </div>
+              <div class="runtime-option" onclick="selectRuntime(this)">
+                <span class="runtime-icon">☕</span>
+                <div class="runtime-name">Java</div>
+                <div class="runtime-ver">21 LTS</div>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Instance Size</label>
+            <div class="select-wrap">
+              <select class="form-select">
+                <option>Micro — 0.5 CPU / 512MB ($5/mo)</option>
+                <option selected>Standard — 1 CPU / 1GB ($15/mo)</option>
+                <option>Pro — 2 CPU / 2GB ($35/mo)</option>
+                <option>Performance — 4 CPU / 8GB ($89/mo)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Start Command</label>
+            <input class="form-input" placeholder="npm start" type="text" value="npm start"/>
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Start Command</label>
-          <input class="form-input" placeholder="npm start" type="text" value="npm start"/>
-        </div>
-      </div>
 
-      <div class="tab-panel" id="tab-settings">
-        <div class="toggle-row">
-          <div><div class="toggle-label">Auto Deploy on push</div><div class="toggle-desc">Deploy automatically when branch is pushed</div></div>
-          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
-        </div>
-        <div class="toggle-row">
-          <div><div class="toggle-label">Health check</div><div class="toggle-desc">Monitor /health endpoint</div></div>
-          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
-        </div>
-        <div class="toggle-row">
-          <div><div class="toggle-label">Auto SSL (Let's Encrypt)</div><div class="toggle-desc">Free HTTPS certificate auto-renewed</div></div>
-          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
-        </div>
-        <div class="toggle-row">
-          <div><div class="toggle-label">Preview deployments</div><div class="toggle-desc">Create preview URL for each PR</div></div>
-          <button class="toggle" onclick="this.classList.toggle('on')"></button>
-        </div>
-        <div class="form-group" style="margin-top:16px;">
-          <label class="form-label">Health check path</label>
-          <input class="form-input" placeholder="/health" type="text" value="/health"/>
+        <div class="tab-panel" id="tab-settings">
+          <div class="toggle-row">
+            <div><div class="toggle-label">Auto Deploy on push</div><div class="toggle-desc">Deploy automatically when branch is pushed</div></div>
+            <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Health check</div><div class="toggle-desc">Monitor /health endpoint</div></div>
+            <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Auto SSL (Let's Encrypt)</div><div class="toggle-desc">Free HTTPS certificate auto-renewed</div></div>
+            <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Preview deployments</div><div class="toggle-desc">Create preview URL for each PR</div></div>
+            <button class="toggle" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="form-group" style="margin-top:16px;">
+            <label class="form-label">Health check path</label>
+            <input class="form-input" placeholder="/health" type="text" value="/health"/>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="triggerDeploy()">🚀 Deploy Application</button>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="triggerDeploy()">🚀 Deploy Application</button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- TOAST CONTAINER -->
-<div class="toast-container" id="toasts"></div>
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container" id="toasts"></div>
+</main>
 
 <script>
 // ── DATA ──
@@ -1628,6 +2102,44 @@ const logMessages = [
   {l:'ok',   m:'SSL cert auto-renewed · <span class="val">*.stackforge.io</span> valid for 90d'},
   {l:'error',m:'<span class="err">ECONNREFUSED</span>: notification-svc:4000 · marking as unhealthy'},
 ];
+
+// ── VIEWS ──
+const views = ['dashboard','apps','deploys','logs','envs','domains','scaling','redis','queue','storage','metrics','alerts','uptime'];
+const viewTitles = {
+  dashboard:'Overview',
+  apps:'Applications',
+  deploys:'Deployments',
+  logs:'Logs',
+  envs:'Environments',
+  domains:'Domains & SSL',
+  scaling:'Auto Scaling',
+  redis:'Redis Cache',
+  queue:'Message Queue',
+  storage:'Object Storage',
+  metrics:'Metrics',
+  alerts:'Alerts',
+  uptime:'Uptime'
+};
+
+function switchView(id) {
+  views.forEach(v => {
+    const el = document.getElementById('view-' + v);
+    if (el) el.style.display = v === id ? '' : 'none';
+  });
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + id + "'")) n.classList.add('active');
+  });
+  document.getElementById('topbar-current').textContent = viewTitles[id] || id;
+
+  if (id === 'logs') { startLogs(); }
+  else { stopLogs(); }
+  if (id === 'apps') buildFullAppsTable();
+  if (id === 'deploys') buildDeployList();
+  if (id === 'metrics') buildMetricsCharts();
+  if (id === 'uptime') buildUptimeBars();
+  if (id === 'storage') buildStorageChart();
+}
 
 // ── TRAFFIC CHART ──
 function buildTrafficChart() {
@@ -1695,7 +2207,6 @@ function buildDeployList() {
 // ── LOGS ──
 let logInterval = null;
 let logRunning = false;
-let logLineCount = 0;
 
 function startLogs() {
   const out = document.getElementById('log-output');
@@ -1714,7 +2225,6 @@ function startLogs() {
     out.scrollTop = out.scrollHeight;
     if (out.children.length > 200) out.removeChild(out.firstChild);
     i++;
-    logLineCount++;
     logInterval = setTimeout(addLine, 400 + Math.random() * 800);
   };
   addLine();
@@ -1745,27 +2255,6 @@ function filterLogs(level) {
   });
 }
 
-// ── VIEWS ──
-const views = ['dashboard','apps','deploys','logs','envs','domains','scaling'];
-const viewTitles = { dashboard:'Overview', apps:'Applications', deploys:'Deployments', logs:'Logs', envs:'Environments', domains:'Domains & SSL', scaling:'Auto Scaling' };
-
-function switchView(id) {
-  views.forEach(v => {
-    const el = document.getElementById('view-' + v);
-    if (el) el.style.display = v === id ? '' : 'none';
-  });
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => {
-    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + id + "'")) n.classList.add('active');
-  });
-  document.getElementById('topbar-current').textContent = viewTitles[id] || id;
-
-  if (id === 'logs') { buildFullAppsTable(); startLogs(); }
-  else { stopLogs(); }
-  if (id === 'apps') buildFullAppsTable();
-  if (id === 'deploys') buildDeployList();
-}
-
 // ── MODAL ──
 function openModal() { document.getElementById('modal').classList.add('open'); }
 function closeModal() { document.getElementById('modal').classList.remove('open'); }
@@ -1792,7 +2281,6 @@ function selectRuntime(el) {
 }
 
 // ── TOAST ──
-let toastQ = 0;
 function showToast(type, title, msg) {
   const container = document.getElementById('toasts');
   const icons = { ok:'✅', info:'💡', warn:'⚠️', error:'❌' };
@@ -1810,7 +2298,8 @@ function showToast(type, title, msg) {
 // ── SECRET TOGGLE ──
 function toggleSecret(id, val) {
   const el = document.getElementById(id);
-  const btn = el.nextElementSibling.nextElementSibling;
+  if (!el) return;
+  const btn = el.nextElementSibling;
   if (el.classList.contains('secret')) {
     el.textContent = val;
     el.classList.remove('secret');
@@ -1822,25 +2311,97 @@ function toggleSecret(id, val) {
   }
 }
 
-// ── INIT ──
-buildTrafficChart();
+// ── SWITCH MQ TAB ──
+function switchMQTab(tab, type) {
+  const tabs = tab.closest('.tabs').querySelectorAll('.tab');
+  tabs.forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  
+  document.getElementById('rabbit-panel').style.display = type === 'rabbit' ? 'block' : 'none';
+  document.getElementById('kafka-panel').style.display = type === 'kafka' ? 'block' : 'none';
+}
 
-// Welcome toast
-setTimeout(() => showToast('ok', 'StackForge PaaS', 'All 10 healthy apps running. 2 alerts pending.'), 800);
+// ── STORAGE CHART ──
+function buildStorageChart() {
+  const chart = document.getElementById('storageChart');
+  if (!chart) return;
+  chart.innerHTML = `
+    <div style="display:flex;width:100%;height:100%;align-items:flex-end;gap:4px;">
+      <div style="flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;"><div style="height:75%;background:var(--accent);border-radius:3px 3px 0 0;" title="Singapore 1.8TB"></div></div>
+      <div style="flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;"><div style="height:17%;background:var(--accent2);border-radius:3px 3px 0 0;" title="Frankfurt 0.4TB"></div></div>
+      <div style="flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;"><div style="height:8%;background:var(--violet);border-radius:3px 3px 0 0;" title="Virginia 0.2TB"></div></div>
+    </div>
+  `;
+}
 
-// Simulate build progress in pipeline
+// ── METRICS CHARTS ──
+function buildMetricsCharts() {
+  const charts = ['cpuChart', 'memoryChart', 'networkChart', 'responseChart'];
+  charts.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const vals = id === 'cpuChart' ? [34,42,38,55,48,62,58,45,38,42,35,28] :
+                id === 'memoryChart' ? [42,48,52,58,62,55,48,42,38,35,32,28] :
+                id === 'networkChart' ? [12,18,24,32,38,42,48,52,58,62,68,72] :
+                [124,118,132,128,142,138,152,148,162,158,172,168];
+    el.innerHTML = vals.map((v,i) => `
+      <div class="chart-bar-wrap"><div class="chart-bar" style="height:${v/2}%;background:linear-gradient(0deg,${i%2? 'var(--accent2)' : 'var(--accent)'},rgba(0,229,255,.6));"></div></div>
+    `).join('');
+  });
+}
+
+// ── UPTIME BARS ──
+function buildUptimeBars() {
+  const el = document.getElementById('uptimeBars');
+  if (!el) return;
+  const statuses = ['up','up','up','up','up','degraded','up','up','up','up','up','up','up','up','up','down','up','up','up','up','up','up','up','up'];
+  el.innerHTML = statuses.map(s => {
+    const height = s === 'up' ? '60px' : s === 'degraded' ? '40px' : '20px';
+    const color = s === 'up' ? 'var(--accent2)' : s === 'degraded' ? 'var(--warn)' : 'var(--danger)';
+    return `
+      <div class="uptime-bar">
+        <div class="uptime-bar-inner uptime-${s}" style="height:${height};background:${color};"></div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── ALERT FUNCTIONS ──
+function filterAlerts(severity) {
+  showToast('info', 'Filtering', `Showing ${severity} alerts`);
+}
+
+function acknowledgeAlert(btn) {
+  const item = btn.closest('.activity-item');
+  item.style.opacity = '0.5';
+  btn.textContent = '✓ Done';
+  btn.disabled = true;
+  showToast('ok', 'Acknowledged', 'Alert has been acknowledged.');
+}
+
+function editRule(ruleName) {
+  showToast('info', 'Edit Rule', `Editing ${ruleName} configuration`);
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard?.writeText(text).then(() => {
+    showToast('ok', 'Copied!', 'URL copied to clipboard');
+  });
+}
+
+function changeUptimeEndpoint(endpoint) {
+  showToast('info', 'Loading', `Showing uptime for ${endpoint}`);
+  buildUptimeBars();
+}
+
+// ── PIPELINE SIMULATION ──
 let pipelineIdx = 3;
 const pipelineDots = document.querySelectorAll('.ps-dot');
-const pipelineLabels = ['Clone','Install','Test','Build','Push','Deploy'];
-const pipelineTimes = ['2s','34s','48s','—','—','—'];
-
 function advancePipeline() {
   if (pipelineIdx >= pipelineDots.length) return;
   setTimeout(() => {
     pipelineDots[pipelineIdx].className = 'ps-dot ps-done';
     pipelineDots[pipelineIdx].textContent = '✓';
-    // Update time
-    const times = ['2s','34s','48s','1m12s','18s','6s'];
     pipelineIdx++;
     if (pipelineIdx < pipelineDots.length) {
       pipelineDots[pipelineIdx].className = 'ps-dot ps-active';
@@ -1851,8 +2412,15 @@ function advancePipeline() {
     }
   }, 1200);
 }
-setTimeout(advancePipeline, 4000);
 
+// ── INIT ──
+buildTrafficChart();
+buildMetricsCharts();
+buildUptimeBars();
+buildStorageChart();
+
+setTimeout(() => showToast('ok', 'StackForge PaaS', 'All systems operational. 2 alerts pending.'), 800);
+setTimeout(advancePipeline, 4000);
 </script>
 </body>
 </html>
